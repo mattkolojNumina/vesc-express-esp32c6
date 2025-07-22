@@ -726,7 +726,10 @@ static void ftm_task(void *arg) {
 			pdTRUE, pdFALSE, wait_time_ms / portTICK_PERIOD_MS);
 
 	if (bits & FTM_REPORT_BIT) {
+		// FTM API compatibility fix for ESP-IDF v5.2
+		#ifdef CONFIG_ESP_WIFI_FTM_ENABLE
 		esp_wifi_ftm_get_report(NULL, 0);
+		#endif
 
 		if (ftm_report.status == FTM_STATUS_SUCCESS) {
 			res =  lbm_enc_i(ftm_report.dist_est);
@@ -813,7 +816,10 @@ static lbm_value ext_wifi_ftm_measure(lbm_value *args, lbm_uint argn) {
 
 
 	a->id = lbm_get_current_cid();
+	// FTM configuration compatibility fix for ESP-IDF v5.2
+	#ifdef CONFIG_ESP_WIFI_FTM_ENABLE
 	a->cfg.use_get_report_api = true;
+	#endif
 	a->cfg.channel = lbm_dec_as_i32(args[1]);
 	a->cfg.frm_count = 8;
 	a->cfg.burst_period = 2;

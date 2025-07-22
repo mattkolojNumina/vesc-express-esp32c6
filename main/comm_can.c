@@ -51,13 +51,52 @@ static io_board_adc_values io_board_adc_5_8[CAN_STATUS_MSGS_TO_STORE];
 static io_board_digial_inputs io_board_digital_in[CAN_STATUS_MSGS_TO_STORE];
 static psw_status psw_stat[CAN_STATUS_MSGS_TO_STORE];
 
-#define RX_BUFFER_NUM				3
+// ESP32-C6 Enhanced buffer configuration for motor control
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+#define RX_BUFFER_NUM				8         // Increased buffers for high-throughput motor data
 #define RX_BUFFER_SIZE				PACKET_MAX_PL_LEN
+#define RXBUF_LEN					128       // Larger receive buffer for ESP32-C6 capabilities
+#else
+#define RX_BUFFER_NUM				3
+#define RX_BUFFER_SIZE				PACKET_MAX_PL_LEN  
 #define RXBUF_LEN					50
+#endif
 
+// ESP32-C6 Enhanced CAN/TWAI Configuration for Motor Control
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+static twai_timing_config_t t_config = {
+	.brp = 8,                    // Baud rate prescaler for 500kbps: 80MHz/(8×20)=500kbps
+	.tseg_1 = 15,                // Time segment 1 for proper sample point (75%)
+	.tseg_2 = 4,                 // Time segment 2 for standard CAN timing  
+	.sjw = 3,                    // Synchronization jump width for noise immunity
+	.triple_sampling = true      // Triple sampling for reliable motor control data
+};
+
+static const twai_filter_config_t f_config = {
+	.acceptance_code = 0x00000000,
+	.acceptance_mask = 0xFFFFFFFF,
+	.single_filter = true        // Single filter mode for ESP32-C6 optimization
+};
+
+static twai_general_config_t g_config = {
+	.mode = TWAI_MODE_NORMAL,
+	.tx_io = GPIO_NUM_0,         // Will be set by hardware configuration
+	.rx_io = GPIO_NUM_1,         // Will be set by hardware configuration
+	.clkout_io = TWAI_IO_UNUSED,
+	.bus_off_io = TWAI_IO_UNUSED,
+	.tx_queue_len = 64,          // Increased TX queue for motor command bursts
+	.rx_queue_len = 128,         // Increased RX queue for status message handling
+	.alerts_enabled = TWAI_ALERT_TX_IDLE | TWAI_ALERT_TX_SUCCESS | 
+					  TWAI_ALERT_TX_FAILED | TWAI_ALERT_ERR_PASS |
+					  TWAI_ALERT_BUS_ERROR | TWAI_ALERT_RX_QUEUE_FULL,
+	.clkout_divider = 0          // No clock output needed
+};
+#else
+// Legacy ESP32 configuration
 static twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
 static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 static twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(0, 0, TWAI_MODE_NORMAL);
+#endif
 
 static volatile bool init_done = false;
 static volatile bool sem_init_done = false;
@@ -766,7 +805,7 @@ static void start_rx_thd(void) {
 
 	stop_rx = false;
 	rx_running = true;
-	xTaskCreatePinnedToCore(rx_task, "can_rx", 1024, NULL, configMAX_PRIORITIES - 1, NULL, tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(rx_task, "can_rx", 4096, NULL, configMAX_PRIORITIES - 1, NULL, tskNO_AFFINITY);
 }
 
 static void stop_rx_thd(void) {
@@ -823,7 +862,7 @@ void comm_can_start(int pin_tx, int pin_rx) {
 	stop_threads = false;
 	status_running = true;
 
-	xTaskCreatePinnedToCore(status_task, "can_status", 1024, NULL, 7, NULL, tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(status_task, "can_status", 4096, NULL, 7, NULL, tskNO_AFFINITY);
 	start_rx_thd();
 
 	init_done = true;
@@ -920,11 +959,11 @@ void comm_can_change_pins(int tx, int rx) {
 	g_config.rx_io = rx;
 
 	gpio_set_pull_mode(tx, GPIO_FLOATING);
-	esp_rom_gpio_connect_out_signal(tx, TWAI_TX_IDX, false, false);
+	esp_rom_gpio_connect_out_signal(tx, TWAI0_TX_IDX, false, false);
 	esp_rom_gpio_pad_select_gpio(tx);
 
 	gpio_set_pull_mode(rx, GPIO_FLOATING);
-	esp_rom_gpio_connect_in_signal(rx, TWAI_RX_IDX, false);
+	esp_rom_gpio_connect_in_signal(rx, TWAI0_RX_IDX, false);
 	esp_rom_gpio_pad_select_gpio(rx);
 	gpio_set_direction(rx, GPIO_MODE_INPUT);
 

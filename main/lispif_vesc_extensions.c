@@ -70,7 +70,7 @@
 #include "esp_netif.h"
 #include "esp_wifi.h"
 #include "esp_mac.h"
-#include "esp_now.h"
+//#include "esp_now.h" // Disabled ESP-NOW functionality
 #include "esp_crc.h"
 #include "driver/i2c.h"
 #include "driver/uart.h"
@@ -80,8 +80,12 @@
 #include "nvs_flash.h"
 #include "esp_sleep.h"
 #include "soc/rtc.h"
+#ifdef CONFIG_BT_ENABLED
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
+#endif
 #include "esp_bt_main.h"
+#endif
 #include "esp_partition.h"
 #include "esp_ota_ops.h"
 
@@ -1923,7 +1927,9 @@ static lbm_value ext_enable_event(lbm_value *args, lbm_uint argn) {
 	} else if (name == sym_event_data_rx) {
 		event_data_rx_en = en;
 	} else if (name == sym_event_esp_now_rx) {
+#ifdef ENABLE_ESP_NOW
 		event_esp_now_rx_en = en;
+#endif
 	} else if (name == sym_event_ble_rx) {
 		event_ble_rx_en = en;
 	} else if (name == sym_event_wifi_disconnect) {
@@ -2105,6 +2111,7 @@ static lbm_value ext_ioboard_set_pwm(lbm_value *args, lbm_uint argn) {
 }
 
 // ESP NOW
+#ifdef ENABLE_ESP_NOW // Disabled ESP-NOW functionality
 
 static bool esp_now_initialized = false;
 static volatile lbm_cid esp_now_send_cid = -1;
@@ -2181,7 +2188,7 @@ static void esp_rx_fun(void *arg) {
 	}
 }
 
-static void espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
+static void espnow_send_cb(const esp_now_send_info_t *tx_info, esp_now_send_status_t status) {
 	lbm_unblock_ctx_unboxed(esp_now_send_cid, status == ESP_NOW_SEND_SUCCESS ? ENC_SYM_TRUE : ENC_SYM_NIL);
 }
 
@@ -2368,6 +2375,7 @@ static lbm_value ext_esp_now_del_peer(lbm_value *args, lbm_uint argn) {
 	}
 }
 
+#ifdef ENABLE_WIFI_EXTENSIONS
 static lbm_value ext_get_mac_addr(lbm_value *args, lbm_uint argn) {
 	(void) args; (void) argn;
 
@@ -2478,6 +2486,7 @@ static lbm_value ext_wifi_stop(lbm_value *args, lbm_uint argn) {
 	esp_wifi_stop();
 	return ENC_SYM_TRUE;
 }
+#endif // ENABLE_WIFI_EXTENSIONS
 
 static lbm_value ext_esp_now_send(lbm_value *args, lbm_uint argn) {
 	if (!esp_now_initialized) {
@@ -2554,6 +2563,8 @@ static lbm_value ext_esp_now_recv(lbm_value *args, lbm_uint argn) {
 
 	return ENC_SYM_TRUE;
 }
+
+#endif // ENABLE_ESP_NOW
 
 static bool i2c_started = false;
 static SemaphoreHandle_t i2c_mutex;
@@ -2813,11 +2824,17 @@ static lbm_value ext_gpio_hold_deepsleep(lbm_value *args, lbm_uint argn) {
 
 	int state = lbm_dec_as_i32(args[0]);
 
+#if SOC_GPIO_SUPPORT_HOLD_IO_IN_DSLP && !SOC_GPIO_SUPPORT_HOLD_SINGLE_IO_IN_DSLP
 	if (state) {
 		gpio_deep_sleep_hold_en();
 	} else {
 		gpio_deep_sleep_hold_dis();
 	}
+#else
+	// ESP32-C6 and newer chips don't support global deep sleep hold
+	// Individual GPIO deep sleep hold would need to be implemented per pin
+	(void)state; // Suppress unused parameter warning
+#endif
 
 	return ENC_SYM_TRUE;
 }
@@ -6581,11 +6598,14 @@ void lispif_load_vesc_extensions(bool main_found) {
 		lbm_add_extension("ioboard-set-pwm", ext_ioboard_set_pwm);
 
 		// ESP NOW
+#ifdef ENABLE_ESP_NOW
 		lbm_add_extension("esp-now-start", ext_esp_now_start);
 		lbm_add_extension("esp-now-add-peer", ext_esp_now_add_peer);
 		lbm_add_extension("esp-now-del-peer", ext_esp_now_del_peer);
 		lbm_add_extension("esp-now-send", ext_esp_now_send);
 		lbm_add_extension("esp-now-recv", ext_esp_now_recv);
+#endif
+#ifdef ENABLE_WIFI_EXTENSIONS
 		lbm_add_extension("get-mac-addr", ext_get_mac_addr);
 		lbm_add_extension("wifi-get-chan", ext_wifi_get_chan);
 		lbm_add_extension("wifi-set-chan", ext_wifi_set_chan);
@@ -6593,6 +6613,7 @@ void lispif_load_vesc_extensions(bool main_found) {
 		lbm_add_extension("wifi-set-bw", ext_wifi_set_bw);
 		lbm_add_extension("wifi-start", ext_wifi_start);
 		lbm_add_extension("wifi-stop", ext_wifi_stop);
+#endif
 
 		// Logging
 		lbm_add_extension("log-start", ext_log_start);
@@ -6755,7 +6776,9 @@ void lispif_disable_all_events(void) {
 	event_can_sid_en = false;
 	event_can_eid_en = false;
 	event_data_rx_en = false;
+#ifdef ENABLE_ESP_NOW
 	event_esp_now_rx_en = false;
+#endif
 	event_ble_rx_en = false;
 	event_wifi_disconnect_en = false;
 	event_cmds_data_tx_en = false;
@@ -6768,7 +6791,9 @@ void lispif_disable_all_events(void) {
 
 	bms_register_cmd_handler(NULL);
 
+#ifdef ENABLE_ESP_NOW
 	esp_now_recv_cid = -1;
+#endif
 	can_recv_sid_cid = -1;
 	can_recv_eid_cid = -1;
 	recv_data_cid = -1;

@@ -43,6 +43,13 @@
 #include "lwip/api.h"
 #include "lwip/netdb.h"
 
+// ESP32-C6 WiFi 6 and coexistence optimization includes
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+#include "esp_coexist.h"
+#include "esp_phy_init.h"
+#include "esp_smartconfig.h"
+#endif
+
 #define WIFI_CONNECTED_BIT		BIT0
 #define WIFI_FAIL_BIT			BIT1
 
@@ -212,6 +219,28 @@ static void set_socket_options(int sock) {
 		return;
 	}
 
+	// Enhanced TCP options for motor control applications
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+	// ESP32-C6 optimized for low-latency motor control
+	int keepAlive = 1;
+	int keepIdle = 3;          // Faster keepalive for motor control
+	int keepInterval = 2;      // Shorter intervals for responsive detection
+	int keepCount = 5;         // More retries for reliable motor control
+	int nodelay = 1;           // Disable Nagle's algorithm for real-time control
+	
+	// Buffer size optimization for high-throughput motor data
+	int sendbuf = 65536;       // Larger send buffer for burst motor commands
+	int recvbuf = 65536;       // Larger receive buffer for status data
+	
+	setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(int));
+	setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int));
+	setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int));
+	setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, sizeof(int));
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(int));
+	setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &sendbuf, sizeof(int));
+	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &recvbuf, sizeof(int));
+#else
+	// Legacy ESP32 configuration
 	int keepAlive = 1;
 	int keepIdle = 5;
 	int keepInterval = 5;
@@ -223,6 +252,7 @@ static void set_socket_options(int sock) {
 	setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int));
 	setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, sizeof(int));
 	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(int));
+#endif
 }
 
 static void tcp_task_local(void *arg) {
@@ -469,14 +499,49 @@ void comm_wifi_init(void) {
 		esp_netif_create_default_wifi_sta();
 	}
 
+	// ESP32-C6 Enhanced WiFi 6 Configuration for Motor Control
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+	// WiFi 6 optimizations for ESP32-C6
+	cfg.ampdu_rx_enable = 1;         // Enable A-MPDU RX for higher throughput
+	cfg.ampdu_tx_enable = 1;         // Enable A-MPDU TX for higher throughput  
+	cfg.amsdu_tx_enable = 1;         // Enable A-MSDU TX for efficiency
+	cfg.nvs_enable = 1;              // Enable NVS for WiFi calibration data
+	cfg.nano_enable = 0;             // Disable nano for full performance
+	
+	// Enhanced buffer configuration for motor control
+	cfg.static_rx_buf_num = 16;      // Increased RX buffers for high throughput
+	cfg.dynamic_rx_buf_num = 64;     // Dynamic RX buffers for burst traffic
+	cfg.tx_buf_type = 1;             // Dynamic TX buffers
+	cfg.static_tx_buf_num = 0;       // No static TX buffers (use dynamic)
+	cfg.dynamic_tx_buf_num = 64;     // Increased dynamic TX buffers
+	
+	// Cache and memory optimizations
+	cfg.cache_tx_buf_num = 8;        // Cache TX buffers for efficiency
+	cfg.csi_enable = 1;              // Enable CSI for WiFi 6 features
+	cfg.magic = WIFI_INIT_CONFIG_MAGIC;
+#endif
 	esp_wifi_init(&cfg);
 
 	esp_wifi_set_storage(WIFI_STORAGE_RAM);
 
+	// ESP32-C6 WiFi 6 and coexistence power management
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+	if (backup.config.ble_mode == BLE_MODE_DISABLED) {
+		// No BLE - optimize for WiFi 6 performance
+		esp_wifi_set_ps(WIFI_PS_NONE);
+	} else {
+		// BLE enabled - use minimal power saving for motor control coexistence
+		esp_wifi_set_ps(WIFI_PS_MIN_MODEM);  // Minimal power saving for motor control
+
+	}
+	
+	// PHY calibration handled by ESP-IDF automatically
+#else
 	if (backup.config.ble_mode == BLE_MODE_DISABLED) {
 		esp_wifi_set_ps(WIFI_PS_NONE);
 	}
+#endif
 
 	esp_event_handler_instance_t instance_any_id;
 	esp_event_handler_instance_t instance_got_ip;
@@ -502,14 +567,26 @@ void comm_wifi_init(void) {
 			.ap = {
 				.ssid = "",
 				.ssid_len = strlen((char*)backup.config.wifi_ap_ssid),
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+				.channel = 6,                    // Channel 6 for better 2.4GHz performance
+				.max_connection = 8,             // ESP32-C6 supports more connections
+				.authmode = WIFI_AUTH_WPA3_PSK,  // WiFi 6 WPA3 security
+				.authmode = WIFI_AUTH_WPA2_WPA3_PSK, // Enhanced security with WPA3 support
+				.pmf_cfg = {
+					.capable = true,
+					.required = true,            // PMF required for WPA3
+				},
+				.ftm_responder = true,           // Fine Timing Measurement
+#else
 				.channel = 1,
-				.password = "",
 				.max_connection = 4,
 				.authmode = WIFI_AUTH_WPA_WPA2_PSK,
 				.pmf_cfg = {
 					.required = false,
 				},
 				.ftm_responder = true,
+#endif
+				.password = "",
 			},
 		};
 
@@ -522,7 +599,15 @@ void comm_wifi_init(void) {
 			.sta = {
 				.ssid = "",
 				.password = "",
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+				.threshold.authmode = WIFI_AUTH_WPA2_PSK,  // Minimum WPA2 for security
+				.pmf_cfg = {
+					.capable = true,
+					.required = false,                      // Optional PMF for compatibility
+				}
+#else
 				.threshold.authmode = WIFI_AUTH_WEP,
+#endif
 			},
 		};
 
@@ -554,7 +639,7 @@ void comm_wifi_init(void) {
 		xTaskCreatePinnedToCore(tcp_task_hub, "tcp_hub", 3500, NULL, 8, NULL, tskNO_AFFINITY);
 	}
 
-	xTaskCreatePinnedToCore(broadcast_task, "udp_multicast", 1024, NULL, 8, NULL, tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(broadcast_task, "udp_multicast", 4096, NULL, 8, NULL, tskNO_AFFINITY);
 }
 
 WIFI_MODE comm_wifi_get_mode(void) {
@@ -728,8 +813,12 @@ void comm_wifi_set_event_listener(comm_wifi_event_cb_t handler) {
 
 struct sockaddr_in create_sockaddr_in(ip_addr_t addr, uint16_t port) {
 	struct sockaddr_in result = {0};
-	// *Pretty* sure this works
-	memcpy(&result.sin_addr, &addr, sizeof(ip_addr_t));
+	// Copy only the IPv4 address part (4 bytes) - handle different IP address structures
+	if (IP_IS_V4(&addr)) {
+		result.sin_addr.s_addr = ip_2_ip4(&addr)->addr;
+	} else {
+		result.sin_addr.s_addr = 0;
+	}
 	result.sin_family = AF_INET;
 	result.sin_port   = htons(port);
 	// TODO: Is this necessary and correct if so?

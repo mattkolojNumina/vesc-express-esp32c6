@@ -1,5 +1,5 @@
-set(COMPONENT_REQUIRES )
-set(COMPONENT_PRIV_REQUIRES )
+set(COMPONENT_REQUIRES esp_wifi bt esp_netif nvs_flash driver esp_coex)
+set(COMPONENT_PRIV_REQUIRES esp_adc esp_pm esp_timer esp_event fatfs spiffs vfs esp_ringbuf app_update efuse mbedtls spi_flash)
 
 set(COMPONENT_SRCS
 "main.c"
@@ -90,6 +90,13 @@ set(COMPONENT_SRCS
 "drivers/imu/ahrs.c"
 
 "lowzip/lowzip.c"
+
+# ESP32-C6 specific enhancements - conditionally compiled
+"wifi_c6_enhancements.c"
+"ble_c6_enhancements.c"
+"ieee802154_c6.c" 
+"power_management_c6.c"
+"android_compat.c"
 )
 
 set(COMPONENT_ADD_INCLUDEDIRS

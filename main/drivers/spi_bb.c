@@ -21,13 +21,20 @@
 #include "soc/gpio_struct.h"
 #include "driver/gpio.h"
 #include "utils.h"
+#include "hal/gpio_ll.h"
 
 // Software SPI
 
 #define SET_PIN(pin) 			(GPIO.out_w1ts.val = 1 << (pin))
 #define CLEAR_PIN(pin) 			(GPIO.out_w1tc.val = 1 << (pin))
 #define WRITE_PIN(pin, level)	{if (level) SET_PIN(pin); else CLEAR_PIN(pin);}
+
+// ESP32-C6 GPIO register compatibility
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+#define READ_PIN(pin)			((gpio_ll_get_level(&GPIO, pin)) & 0x1)
+#else
 #define READ_PIN(pin)			((GPIO.in.data >> (pin)) & 0x1)
+#endif
 
 void spi_bb_init(spi_bb_state *s) {
 	gpio_reset_pin(s->miso_pin);

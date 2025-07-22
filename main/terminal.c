@@ -28,7 +28,11 @@
 #include <math.h>
 #include <ctype.h>
 
+#ifdef CONFIG_BT_ENABLED
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
+#endif
+#endif
 #include "esp_wifi.h"
 #include "comm_ble.h"
 #include "comm_wifi.h"
@@ -105,6 +109,7 @@ void terminal_process_string(char *str) {
 	}
 
 	if (strcmp(argv[0], "threads") == 0) {
+#if (configUSE_TRACE_FACILITY == 1) && (configGENERATE_RUN_TIME_STATS == 1)
 		int num_tasks = uxTaskGetNumberOfTasks();
 		TaskStatus_t *tasks = malloc(num_tasks * sizeof(TaskStatus_t));
 		uint32_t time_total;
@@ -155,6 +160,9 @@ void terminal_process_string(char *str) {
 
 		free(tasks);
 		commands_printf(" ");
+#else
+		commands_printf("Task monitoring not available (FreeRTOS config disabled)");
+#endif
 	} else if (strcmp(argv[0], "mem") == 0) {
 		nvs_stats_t s;
 		nvs_get_stats(NULL, &s);

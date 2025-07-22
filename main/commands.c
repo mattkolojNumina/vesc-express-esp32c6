@@ -69,8 +69,14 @@
 #include "esp_ota_ops.h"
 #include "esp_sleep.h"
 #include "soc/rtc.h"
+#ifdef CONFIG_BT_ENABLED
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
+#endif
+#endif
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt_main.h"
+#endif
 #include "esp_wifi.h"
 
 // Settings
@@ -240,8 +246,17 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 		send_buffer[ind++] = FW_VERSION_MAJOR;
 		send_buffer[ind++] = FW_VERSION_MINOR;
 
-		strcpy((char*)(send_buffer + ind), HW_NAME);
-		ind += strlen(HW_NAME) + 1;
+		size_t hw_name_len = strlen(HW_NAME);
+		if (ind + hw_name_len + 1 < sizeof(send_buffer)) {
+			strcpy((char*)(send_buffer + ind), HW_NAME);
+			ind += hw_name_len + 1;
+		} else {
+			// Handle buffer overflow - truncate safely
+			size_t available = sizeof(send_buffer) - ind - 1;
+			strncpy((char*)(send_buffer + ind), HW_NAME, available);
+			send_buffer[sizeof(send_buffer) - 1] = '\0';
+			ind = sizeof(send_buffer);
+		}
 
 		size_t size_bits = esp_efuse_get_field_size(ESP_EFUSE_MAC_FACTORY);
 	    esp_efuse_read_field_blob(ESP_EFUSE_MAC_FACTORY, send_buffer + ind, size_bits);

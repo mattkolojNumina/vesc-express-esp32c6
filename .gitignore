@@ -1,12 +1,97 @@
-.project
-.settings
-.cproject
-build
-esp_idf_components
+# ESP-IDF Build artifacts
+build/
 sdkconfig.old
-.vscode
+sdkconfig.backup
+*.tmp
 
-# These should maybe be committed instead, but they weren't before and I don't
-# feel like making that decision right now...
-managed_components/
-dependencies.lock
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Development environment cache directories
+.cache/
+.claude/
+.serena/
+main/lispBM/.cache/
+
+# Temporary files and logs
+*.log
+*.tmp
+boot_*.txt
+minicom_session.txt
+nascoder-analytics.json
+openocd_*.log
+hardware_*.log
+memory_*.log
+service_*.log
+vesc_*.log
+wifi_*.log
+stack_*.log
+system_*.log
+ble_validation.log
+
+# Build artifacts and binaries
+*.bin
+*.elf
+*.map
+build_output.log
+build_final.log
+
+# Downloaded archives and tools
+*.tar.gz
+*.tar.xz
+*.run
+typescript
+android-studio-*.tar.gz
+qt-everywhere-src-*.tar.xz*
+qt-online-installer-*.run
+aqtinstall.log
+
+# Generated debug and configuration files
+debug_*.gdb
+simple_*.gdb
+validate_*.gdb
+verify_*.gdb
+init_*.gdb
+fix_*.gdb
+flash_*.gdb
+test_*.gdb
+*_openocd.cfg
+*_esp32c6.cfg
+*_wsl2.cfg
+*_docker.cfg
+*_simple.cfg
+minimal_openocd.tcl
+simple_openocd_test.tcl
+openocd_commands.*
+
+# Partition and firmware files
+partition_*.bin
+partition_*.csv
+partitions_*.csv
+firmware_*.bin
+flash_*.bin
+ota_data_initial.bin
+
+# Build validation and test results
+build_validation_results/
+build_validation_script.sh
+final_deployment_validation.sh
+enhanced_memory_*.db
+
+# Downloaded and extracted tools
+openocd-esp32/
+vesc_tool/
+openocd-esp32-linux-*.tar.gz
+
+# Research and analysis files
+research_command.py
+protocol_test_vectors.h
+test_main.c
+test_android_compatibility.md
+
+# Documentation files to keep clean (keeping final versions)
+COMMIT_MESSAGE.txt

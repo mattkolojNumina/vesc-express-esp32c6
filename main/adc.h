@@ -21,10 +21,12 @@
 #define MAIN_ADC_H_
 
 #include "conf_general.h"
-#include "driver/adc.h"
+#include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
 
 // Functions
 void adc_init(void);
-float adc_get_voltage(adc1_channel_t ch);
+float adc_get_voltage(adc_channel_t ch);
 
 #endif /* MAIN_ADC_H_ */

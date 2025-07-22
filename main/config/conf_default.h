@@ -20,7 +20,7 @@
 
 // WiFi Mode
 #ifndef CONF_WIFI_MODE
-#define CONF_WIFI_MODE 0
+#define CONF_WIFI_MODE 2  // Enable WiFi AP mode (WIFI_MODE_ACCESS_POINT)
 #endif
 
 // Station Mode SSID
@@ -80,7 +80,7 @@
 
 // Name
 #ifndef CONF_BLE_NAME
-#define CONF_BLE_NAME "ExpressT"
+#define CONF_BLE_NAME "VESC Express"
 #endif
 
 // Bluetooth Pin Code

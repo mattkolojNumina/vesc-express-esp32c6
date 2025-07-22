@@ -21,7 +21,9 @@
 
 #include <string.h>
 
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt_defs.h"
+#endif
 
 #include "custom_ble.h"
 #include "lispif_events.h"
@@ -34,6 +36,8 @@
 #include "eval_cps.h"
 #include "extensions.h"
 #include "commands.h"
+
+#ifdef CONFIG_BT_ENABLED
 
 /**
  * Error reasons
@@ -1281,3 +1285,10 @@ void lispif_load_ble_extensions(void) {
 	lbm_add_extension("ble-get-services", ext_ble_get_services);
 	lbm_add_extension("ble-get-attrs", ext_ble_get_attrs);
 }
+
+#else
+// Stub implementations when Bluetooth is disabled
+void lispif_load_ble_extensions(void) {
+	// BLE extensions not available when Bluetooth is disabled
+}
+#endif

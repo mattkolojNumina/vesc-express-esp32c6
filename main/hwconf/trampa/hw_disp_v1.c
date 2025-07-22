@@ -29,7 +29,9 @@
 #include "extensions/display_extensions.h"
 #include "disp_st7789.h"
 #include "esp_wifi.h"
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
+#endif
 #include "esp_bt_main.h"
 #include "esp_sleep.h"
 

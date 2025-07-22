@@ -30,13 +30,25 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
+#endif
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt_defs.h"
 #include "esp_bt_device.h"
 #include "esp_bt_main.h"
+#endif
+#ifdef CONFIG_BT_ENABLED
 #include "esp_gap_ble_api.h"
+#endif
+#ifdef CONFIG_BT_ENABLED
 #include "esp_gatt_defs.h"
+#endif
+#ifdef CONFIG_BT_ENABLED
+#ifdef CONFIG_BT_ENABLED
 #include "esp_gatts_api.h"
+#endif
+#endif
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_system.h"
@@ -47,6 +59,8 @@
 #include "utils.h"
 #include "packet.h"
 
+
+#ifdef CONFIG_BT_ENABLED
 #define ADV_CFG_FLAG      (1 << 0)
 #define SCAN_RSP_CFG_FLAG (1 << 1)
 
@@ -1144,3 +1158,21 @@ void custom_ble_init() {
 	memcpy(device_name, (char *)backup.config.ble_name, 9);
 	device_name[9] = '\0';
 }
+#else
+// Stub implementations when Bluetooth is disabled
+custom_ble_result_t custom_ble_set_name(const char *name) { return CUSTOM_BLE_NOT_STARTED; }
+custom_ble_result_t custom_ble_update_adv(bool use_raw, size_t adv_len, const uint8_t adv_data_raw[adv_len], size_t scan_rsp_len, const uint8_t scan_rsp_data_raw[scan_rsp_len]) { return CUSTOM_BLE_NOT_STARTED; }
+void custom_ble_set_attr_write_handler(attr_write_cb_t callback) { }
+custom_ble_result_t custom_ble_add_service(esp_bt_uuid_t service_uuid, uint16_t chr_count, const ble_chr_definition_t chr[chr_count], service_handles_cb_t handles_cb) { return CUSTOM_BLE_NOT_STARTED; }
+custom_ble_result_t custom_ble_remove_service(uint16_t service_handle) { return CUSTOM_BLE_NOT_STARTED; }
+custom_ble_result_t custom_ble_get_attr_value(uint16_t attr_handle, uint16_t *length, const uint8_t **value) { return CUSTOM_BLE_NOT_STARTED; }
+custom_ble_result_t custom_ble_set_attr_value(uint16_t attr_handle, uint16_t length, const uint8_t value[length]) { return CUSTOM_BLE_NOT_STARTED; }
+uint16_t custom_ble_service_count() { return 0; }
+uint16_t custom_ble_get_services(uint16_t capacity, uint16_t service_handles[capacity]) { return 0; }
+int16_t custom_ble_attr_count(uint16_t service_handle) { return -1; }
+custom_ble_result_t custom_ble_get_attrs(uint16_t service_handle, uint16_t capacity, uint16_t service_handles[capacity], uint16_t *written_count) { return CUSTOM_BLE_NOT_STARTED; }
+custom_ble_result_t custom_ble_start() { return CUSTOM_BLE_NOT_STARTED; }
+bool custom_ble_started() { return false; }
+void custom_ble_init() { }
+esp_ble_adv_params_t ble_adv_params = {0};
+#endif

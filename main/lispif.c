@@ -236,7 +236,6 @@ void lispif_process_cmd(unsigned char *data, unsigned int len,
 
 		if (lisp_thd_running) {
 			uint32_t timeTot = portGET_RUN_TIME_COUNTER_VALUE();
-			portALT_GET_RUN_TIME_COUNTER_VALUE(timeTot);
 			if (timeTot > 0) {
 				TaskStatus_t stat;
 				vTaskGetInfo(eval_task, &stat, pdFALSE, 0);

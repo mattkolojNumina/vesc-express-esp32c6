@@ -126,7 +126,7 @@ bool comm_uart_init(int pin_tx, int pin_rx, int uart_num, int baudrate) {
 }
 
 void comm_uart_stop(int uart_num) {
-	if (uart_num >= 0 && uart_num >= UART_NUM_MAX) {
+	if (uart_num < 0 || uart_num >= UART_NUM_MAX) {
 		return;
 	}
 

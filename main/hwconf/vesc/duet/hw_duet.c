@@ -26,7 +26,9 @@
 #include "soc/gpio_sig_map.h"
 #include "driver/gpio.h"
 #include "esp_wifi.h"
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
+#endif
 #include "esp_bt_main.h"
 #include "esp_sleep.h"
 

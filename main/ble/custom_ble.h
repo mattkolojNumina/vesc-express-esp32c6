@@ -22,10 +22,23 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt_defs.h"
+#ifdef CONFIG_BT_ENABLED
 #include "esp_gatt_defs.h"
+#endif
+#ifdef CONFIG_BT_ENABLED
 #include "esp_gap_ble_api.h"
+#endif
+#else
+// Stub definitions when Bluetooth is disabled
+typedef struct { uint8_t dummy; } esp_bt_uuid_t;
+typedef uint8_t esp_gatt_perm_t;
+typedef uint8_t esp_gatt_char_prop_t;
+typedef struct { uint8_t dummy; } esp_ble_adv_params_t;
+#endif
 
 #define CUSTOM_BLE_MAX_NAME_LEN 30
 

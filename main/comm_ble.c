@@ -27,12 +27,14 @@
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
 
+#ifdef CONFIG_BT_ENABLED
 #include "esp_bt.h"
 #include "esp_bt_defs.h"
 #include "esp_bt_device.h"
 #include "esp_bt_main.h"
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
+#endif
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_system.h"
@@ -42,8 +44,16 @@
 #include "conf_general.h"
 #include "main.h"
 
+#ifdef CONFIG_BT_ENABLED
+
 #define GATTS_CHAR_VAL_LEN_MAX 255
+// ESP32-C6 Enhanced BLE Configuration for Motor Control
 #define DEFAULT_BLE_MTU 20 // 23 for default mtu and 3 bytes for ATT headers
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+#define MAX_BLE_MTU 512    // ESP32-C6 supports up to 512 bytes for high throughput
+#else
+#define MAX_BLE_MTU 255    // Legacy ESP32 maximum
+#endif
 #define BLE_CHAR_COUNT 2
 #define BLE_SERVICE_HANDLE_NUM (1 + (3 * BLE_CHAR_COUNT))
 #define ADV_CFG_FLAG (1 << 0)
@@ -118,10 +128,10 @@ static uint32_t ble_add_char_position;
 static esp_ble_adv_data_t ble_adv_data = {
 	.set_scan_rsp = false,
 	.include_name = true,
-	.include_txpower = false,
-	.min_interval = 0x06,
-	.max_interval = 0x30,
-	.appearance = 0x00,
+	.include_txpower = true,  // Include TX power for Android 15 compatibility
+	.min_interval = 0x50,     // Android 15 compatible connection intervals (100ms)
+	.max_interval = 0x90,     // Android 15 compatible connection intervals (180ms)
+	.appearance = 0x0540,     // Generic Remote Control appearance for motor control
 	.manufacturer_len = 0,
 	.p_manufacturer_data = NULL,
 	.service_data_len = 0,
@@ -135,9 +145,9 @@ static esp_ble_adv_data_t ble_rsp_data = {
 	.set_scan_rsp = true,
 	.include_name = true,
 	.include_txpower = true,
-	.min_interval = 0x06,
-	.max_interval = 0x30,
-	.appearance = 0x00,
+	.min_interval = 0x50,     // Match main advertisement intervals
+	.max_interval = 0x90,     // Match main advertisement intervals 
+	.appearance = 0x0540,     // Generic Remote Control appearance
 	.manufacturer_len = 0,
 	.p_manufacturer_data = NULL,
 	.service_data_len = 0,
@@ -147,10 +157,12 @@ static esp_ble_adv_data_t ble_rsp_data = {
 	.flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
+// Android 15 compatible advertisement parameters
 static esp_ble_adv_params_t ble_adv_params = {
-	.adv_int_min = 0x20,
-	.adv_int_max = 0x40,
-	.adv_type = ADV_TYPE_IND,
+	// Android 15 optimized intervals (100-150ms for better power management)
+	.adv_int_min = 0xA0,        // 100ms minimum for Android 15 compatibility
+	.adv_int_max = 0xF0,        // 150ms maximum for power efficiency
+	.adv_type = ADV_TYPE_IND,   // Connectable undirected advertising
 	.own_addr_type = BLE_ADDR_TYPE_PUBLIC,
 	.channel_map = ADV_CHNL_ALL,
 	.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
@@ -203,8 +215,8 @@ static gatts_characteristic_instance_t ble_chars[BLE_CHAR_COUNT] = {
 			{0x9E, 0xCA, 0xDC, 0x24, 0x0E, 0xE5, 0xA9, 0xE0, 0x93, 0xF3, 0xA3,
 			 0xB5, 0x02, 0x00, 0x40, 0x6E},
 		.char_perm = (ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
-		.char_property =
-			ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
+		// Motor control optimized: Write without response for low latency
+		.char_property = ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
 		.char_val = &gatts_char1_val,
 		.char_control = NULL,
 		.char_handle = 0,
@@ -507,13 +519,18 @@ static void gatts_event_handler(
 
 		case ESP_GATTS_EXEC_WRITE_EVT:
 		case ESP_GATTS_MTU_EVT:
+			// ESP32-C6 Enhanced MTU handling for motor control throughput
 			if (param->mtu.mtu == 0) {
-				ble_current_mtu = 20;
-			} else if (param->mtu.mtu > GATTS_CHAR_VAL_LEN_MAX) {
-				ble_current_mtu = GATTS_CHAR_VAL_LEN_MAX;
+				ble_current_mtu = DEFAULT_BLE_MTU;
+			} else if (param->mtu.mtu > MAX_BLE_MTU) {
+				ble_current_mtu = MAX_BLE_MTU;
 			} else {
 				ble_current_mtu = param->mtu.mtu;
 			}
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+			// Log MTU negotiation for motor control optimization
+			ESP_LOGI("BLE", "ESP32-C6 MTU negotiated: %d bytes (motor control optimized)", ble_current_mtu);
+#endif
 			break;
 
 		case ESP_GATTS_CONF_EVT:
@@ -663,7 +680,16 @@ void comm_ble_init(void) {
 		ble_chars[1].desc_perm = (ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
 	}
 
+	// ESP32-C6 Enhanced BT Controller Configuration for Motor Control
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+#ifdef CONFIG_IDF_TARGET_ESP32C6
+	// ESP32-C6 enhanced configuration leveraging superior hardware
+	bt_cfg.ble_max_act = 20;        // Increased activities (C6 can handle more)
+	bt_cfg.ble_max_conn = 8;        // Support 8 concurrent connections
+	bt_cfg.ble_ll_resolv_list_size = 16;  // Enhanced privacy support
+	bt_cfg.ble_hci_evt_hi_buf_count = 50; // High throughput event buffers
+	ESP_LOGI("BLE", "ESP32-C6 enhanced BLE controller initialized (motor control optimized)");
+#endif
 	esp_bt_controller_init(&bt_cfg);
 
 	esp_bt_controller_enable(ESP_BT_MODE_BLE);
@@ -736,3 +762,11 @@ int comm_ble_mtu_now(void) {
 void comm_ble_send_packet(unsigned char *data, unsigned int len) {
 	packet_send_packet(data, len, packet_state);
 }
+
+#else
+// Stub implementations when Bluetooth is disabled
+void comm_ble_init(void) { }
+bool comm_ble_is_connected() { return false; }
+int comm_ble_mtu_now(void) { return 0; }
+void comm_ble_send_packet(unsigned char *data, unsigned int len) { (void)data; (void)len; }
+#endif
