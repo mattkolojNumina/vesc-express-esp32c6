@@ -1,0 +1,32 @@
+{
+  "openocd_config": "esp32c6_optimized.cfg",
+  "default_debug_profile": "basic",
+  "auto_setup_wsl2": true,
+  "enable_memory_debugging": true,
+  "session_history": [
+    {
+      "timestamp": "2025-07-23 14:45:12",
+      "action": "environment_check",
+      "details": {
+        "ESP-IDF": true,
+        "OpenOCD": true,
+        "GDB": true,
+        "Project Build": false,
+        "Device Connection": true,
+        "WSL2 Setup": true
+      }
+    },
+    {
+      "timestamp": "2025-07-23 14:51:41",
+      "action": "environment_check",
+      "details": {
+        "ESP-IDF": true,
+        "OpenOCD": true,
+        "GDB": true,
+        "Project Build": false,
+        "Device Connection": true,
+        "WSL2 Setup": true
+      }
+    }
+  ]
+}

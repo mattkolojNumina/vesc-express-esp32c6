@@ -1,0 +1,137 @@
+{
+  "openocd_config": "esp32c6_optimized.cfg",
+  "default_debug_profile": "basic",
+  "auto_setup_wsl2": true,
+  "enable_memory_debugging": true,
+  "session_history": [
+    {
+      "timestamp": "2025-07-23 18:23:29",
+      "action": "environment_check",
+      "details": {
+        "ESP-IDF": false,
+        "OpenOCD": true,
+        "GDB": false,
+        "Project Build": false,
+        "Device Connection": true,
+        "WSL2 Setup": true
+      }
+    },
+    {
+      "timestamp": "2025-07-23 19:24:05",
+      "action": "environment_check",
+      "details": {
+        "ESP-IDF": false,
+        "OpenOCD": true,
+        "GDB": false,
+        "Project Build": false,
+        "Device Connection": true,
+        "WSL2 Setup": true
+      }
+    },
+    {
+      "timestamp": "2025-07-23 19:24:14",
+      "action": "system_monitor_start",
+      "details": {}
+    },
+    {
+      "timestamp": "2025-07-23 19:24:24",
+      "action": "system_monitor_failed",
+      "details": {
+        "error": "Background process failed: OpenOCD failed to start: Open On-Chip Debugger 0.12.0\nLicensed under GNU GPL v2\nFor bug reports, read\n\thttp://openocd.org/doc/doxygen/bugs.html\nInfo : only one transport option; autoselect 'jtag'\n/home/rds/vesc_express/esp32c6_optimized.cfg:4: Error: invalid command name \"esp_usb_jtag\"\nin procedure 'script' \nat file \"embedded:startup.tcl\", line 28\nat file \"/home/rds/vesc_express/esp32c6_optimized.cfg\", line 4\n"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 19:24:40",
+      "action": "debug_session_start",
+      "details": {
+        "profile": "wifi"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 19:24:40",
+      "action": "debug_session_end",
+      "details": {
+        "profile": "wifi",
+        "success": false
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:37:07",
+      "action": "system_monitor_start",
+      "details": {}
+    },
+    {
+      "timestamp": "2025-07-23 21:37:18",
+      "action": "system_monitor_failed",
+      "details": {
+        "error": "Background process failed: OpenOCD failed to start: Open On-Chip Debugger 0.12.0\nLicensed under GNU GPL v2\nFor bug reports, read\n\thttp://openocd.org/doc/doxygen/bugs.html\nInfo : only one transport option; autoselect 'jtag'\n/home/rds/vesc_express/esp32c6_optimized.cfg:6: Error: Can't find target/esp32c6.cfg\nin procedure 'script' \nat file \"embedded:startup.tcl\", line 28\nat file \"/home/rds/vesc_express/esp32c6_optimized.cfg\", line 6\n"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:47:39",
+      "action": "environment_check",
+      "details": {
+        "ESP-IDF": false,
+        "OpenOCD": true,
+        "GDB": false,
+        "Project Build": false,
+        "Device Connection": true,
+        "WSL2 Setup": true
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:47:45",
+      "action": "debug_session_start",
+      "details": {
+        "profile": "wifi"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:47:45",
+      "action": "debug_session_end",
+      "details": {
+        "profile": "wifi",
+        "success": false
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:49:04",
+      "action": "environment_check",
+      "details": {
+        "ESP-IDF": true,
+        "OpenOCD": true,
+        "GDB": false,
+        "Project Build": false,
+        "Device Connection": true,
+        "WSL2 Setup": true
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:49:11",
+      "action": "debug_session_start",
+      "details": {
+        "profile": "wifi"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:49:11",
+      "action": "debug_session_end",
+      "details": {
+        "profile": "wifi",
+        "success": false
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:49:18",
+      "action": "system_monitor_start",
+      "details": {}
+    },
+    {
+      "timestamp": "2025-07-23 21:49:29",
+      "action": "system_monitor_failed",
+      "details": {
+        "error": "Background process failed: OpenOCD failed to start: Open On-Chip Debugger 0.12.0\nLicensed under GNU GPL v2\nFor bug reports, read\n\thttp://openocd.org/doc/doxygen/bugs.html\nInfo : only one transport option; autoselect 'jtag'\n/home/rds/vesc_express/esp32c6_optimized.cfg:6: Error: Can't find target/esp32c6.cfg\nin procedure 'script' \nat file \"embedded:startup.tcl\", line 28\nat file \"/home/rds/vesc_express/esp32c6_optimized.cfg\", line 6\n"
+      }
+    }
+  ]
+}

@@ -92,7 +92,8 @@ typedef enum {
 typedef enum {
 	WIFI_MODE_DISABLED = 0,
 	WIFI_MODE_STATION,
-	WIFI_MODE_ACCESS_POINT
+	WIFI_MODE_ACCESS_POINT,
+	WIFI_MODE_APSTA_CUSTOM
 } WIFI_MODE;
 
 typedef enum {
@@ -296,6 +297,13 @@ typedef enum {
 	COMM_FW_INFO							= 157,
 	
 	COMM_CAN_UPDATE_BAUD_ALL				= 158,
+
+	// Debug commands - Memory-efficient protocol extension
+	COMM_DEBUG_GET_SYSTEM_INFO				= 159,
+	COMM_DEBUG_SET_LOG_LEVEL				= 160,
+	COMM_DEBUG_GET_LOG_LEVEL				= 161,
+	COMM_DEBUG_STREAM_START					= 162,
+	COMM_DEBUG_STREAM_STOP					= 163,
 } COMM_PACKET_ID;
 
 // CAN commands

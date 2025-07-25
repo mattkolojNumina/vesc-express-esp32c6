@@ -26,6 +26,7 @@ set(COMPONENT_SRCS
 "digital_filter.c"
 
 "config/confsrc.c"
+"conf_custom.c"
 "hwconf/hw.c"
 
 "lispif.c"
@@ -94,9 +95,15 @@ set(COMPONENT_SRCS
 # ESP32-C6 specific enhancements - conditionally compiled
 "wifi_c6_enhancements.c"
 "ble_c6_enhancements.c"
+"hub_motor_enhancements.c"
+"lispbm_hub_motor_scripts.c"
 "ieee802154_c6.c" 
 "power_management_c6.c"
 "android_compat.c"
+
+# WiFi Debugging Components - DISABLED for ESP32-C6 stability
+# "debug_wifi.c"           # DISABLED: Memory pressure causing boot loops
+# "debug_wifi_delayed.c"   # DISABLED: Memory pressure causing boot loops
 )
 
 set(COMPONENT_ADD_INCLUDEDIRS

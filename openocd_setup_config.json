@@ -1,0 +1,108 @@
+{
+  "default_config_type": "optimized",
+  "auto_detect_device": true,
+  "create_vscode_config": true,
+  "test_connection": true,
+  "custom_speed": null,
+  "session_history": [
+    {
+      "timestamp": "2025-07-23 13:26:26",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detection_failed",
+      "details": {
+        "info": [
+          "No ESP32-C6 device detected"
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-23 18:23:29",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-23 18:24:29",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "dependencies_checked",
+      "details": {
+        "status": "all_available"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 18:24:29",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-23 18:24:29",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "config_created",
+      "details": {
+        "type": "optimized",
+        "path": "/home/rds/vesc_express/esp32c6_optimized.cfg",
+        "custom_settings": {}
+      }
+    },
+    {
+      "timestamp": "2025-07-23 18:24:29",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "vscode_config_created",
+      "details": {
+        "path": "/home/rds/vesc_express/.vscode"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 18:24:29",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "setup_complete",
+      "details": {
+        "config_type": "optimized"
+      }
+    },
+    {
+      "timestamp": "2025-07-23 19:24:05",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:47:39",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-23 21:49:04",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    }
+  ]
+}

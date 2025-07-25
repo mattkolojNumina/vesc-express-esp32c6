@@ -110,6 +110,7 @@ p, li { white-space: pre-wrap; }
             <enumNames>WiFi Disabled</enumNames>
             <enumNames>Station</enumNames>
             <enumNames>Access Point</enumNames>
+            <enumNames>AP+Station</enumNames>
         </wifi_mode>
         <wifi_sta_ssid>
             <longName>Station Mode SSID</longName>

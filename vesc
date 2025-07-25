@@ -1,0 +1,364 @@
+#!/bin/bash
+# VESC Express - Ultimate Development Convenience Script
+# Single script for all common ESP32-C6 VESC Express operations
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+print_logo() {
+    echo -e "${CYAN}"
+    echo "██╗   ██╗███████╗███████╗ ██████╗    ███████╗██╗  ██╗██████╗ ██████╗ ███████╗███████╗███████╗"
+    echo "██║   ██║██╔════╝██╔════╝██╔════╝    ██╔════╝╚██╗██╔╝██╔══██╗██╔══██╗██╔════╝██╔════╝██╔════╝"
+    echo "██║   ██║█████╗  ███████╗██║         █████╗   ╚███╔╝ ██████╔╝██████╔╝█████╗  ███████╗███████╗"
+    echo "╚██╗ ██╔╝██╔══╝  ╚════██║██║         ██╔══╝   ██╔██╗ ██╔═══╝ ██╔══██╗██╔══╝  ╚════██║╚════██║"
+    echo " ╚████╔╝ ███████╗███████║╚██████╗    ███████╗██╔╝ ██╗██║     ██║  ██║███████╗███████║███████║"
+    echo "  ╚═══╝  ╚══════╝╚══════╝ ╚═════╝    ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝"
+    echo -e "${NC}"
+    echo -e "${BLUE}ESP32-C6 Development & Debugging Suite${NC}"
+    echo ""
+}
+
+print_help() {
+    print_logo
+    echo "Usage: ./vesc <command> [options]"
+    echo ""
+    echo -e "${GREEN}🔨 Development Commands:${NC}"
+    echo "  setup          - Complete environment setup"
+    echo "  build          - Build the firmware"
+    echo "  flash          - Flash firmware to device"
+    echo "  monitor        - Monitor serial output"
+    echo "  clean          - Clean build files"
+    echo "  rebuild        - Clean + Build"
+    echo ""
+    echo -e "${GREEN}🐛 Debugging Commands:${NC}"
+    echo "  debug          - Interactive debugging session"
+    echo "  check          - Verify environment setup"
+    echo "  test           - Run comprehensive tests"
+    echo "  openocd        - Start OpenOCD server"
+    echo "  gdb            - Connect GDB to OpenOCD"
+    echo ""
+    echo -e "${GREEN}📊 Analysis Commands:${NC}"
+    echo "  memory         - Memory usage analysis"
+    echo "  size           - Build size analysis"
+    echo "  logs           - View debug logs"
+    echo "  analyze        - Advanced device analysis"
+    echo "  troubleshoot   - Comprehensive troubleshooting"
+    echo ""
+    echo -e "${GREEN}🔍 Tool Discovery:${NC}"
+    echo "  discover       - Show all available ESP32 tools"
+    echo "  suggest        - Smart tool recommendations"
+    echo "  tools          - List specialized Python tools"
+    echo ""
+    echo -e "${GREEN}⚡ Quick Commands:${NC}"
+    echo "  dev            - build + flash + monitor"
+    echo "  quick          - check + build + flash"
+    echo "  full           - setup + check + build + test"
+    echo ""
+    echo -e "${GREEN}💡 Examples:${NC}"
+    echo "  ./vesc setup   # First-time setup"
+    echo "  ./vesc dev     # Standard development cycle"
+    echo "  ./vesc debug   # Start debugging session"
+    echo "  ./vesc check   # Verify everything works"
+    echo ""
+}
+
+# Ensure ESP-IDF environment
+setup_environment() {
+    if [ ! -f ".env.esp32" ]; then
+        echo -e "${YELLOW}⚠️  Project environment not found. Running setup...${NC}"
+        ./setup_esp_env.sh
+    fi
+    
+    source .env.esp32
+    
+    # Check if ESP-IDF is available
+    if ! command -v idf.py &> /dev/null; then
+        echo -e "${YELLOW}⚠️  ESP-IDF not in PATH. Loading environment...${NC}"
+        source ~/esp/esp-idf/export.sh
+    fi
+}
+
+case "$1" in
+    "setup")
+        print_logo
+        echo -e "${BLUE}🚀 Setting up ESP32-C6 VESC Express development environment...${NC}"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - setup command used" >> .vesc_analytics.log 2>/dev/null || true
+        ./setup_esp_env.sh
+        echo -e "${GREEN}✅ Setup complete! Try: ./vesc dev${NC}"
+        ;;
+        
+    "build")
+        setup_environment
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - build command used" >> .vesc_analytics.log 2>/dev/null || true
+        echo -e "${BLUE}🔨 Building firmware...${NC}"
+        idf.py build
+        echo -e "${GREEN}✅ Build complete!${NC}"
+        ;;
+        
+    "flash")
+        setup_environment
+        echo -e "${BLUE}⚡ Flashing firmware...${NC}"
+        idf.py flash
+        echo -e "${GREEN}✅ Flash complete!${NC}"
+        ;;
+        
+    "monitor")
+        setup_environment
+        echo -e "${BLUE}📡 Starting serial monitor... (Ctrl+] to exit)${NC}"
+        idf.py monitor
+        ;;
+        
+    "clean")
+        setup_environment
+        echo -e "${BLUE}🧹 Cleaning build files...${NC}"
+        idf.py fullclean
+        echo -e "${GREEN}✅ Clean complete!${NC}"
+        ;;
+        
+    "rebuild")
+        setup_environment
+        echo -e "${BLUE}🔄 Rebuilding firmware...${NC}"
+        idf.py fullclean build
+        echo -e "${GREEN}✅ Rebuild complete!${NC}"
+        ;;
+        
+    "debug")
+        setup_environment
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - debug command used" >> .vesc_analytics.log 2>/dev/null || true
+        echo -e "${BLUE}🐛 Starting interactive debugging...${NC}"
+        python tools/esp32c6_unified_debugger.py --interactive
+        ;;
+        
+    "check")
+        setup_environment
+        echo -e "${BLUE}✅ Checking environment...${NC}"
+        python tools/debug_helper.py --check
+        ;;
+        
+    "test")
+        setup_environment
+        echo -e "${BLUE}🧪 Running comprehensive tests...${NC}"
+        python tools/esp32c6_unified_debugger.py --test
+        ;;
+        
+    "openocd")
+        setup_environment
+        echo -e "${BLUE}🔗 Starting OpenOCD server...${NC}"
+        echo -e "${YELLOW}Note: Leave this running and use './vesc gdb' in another terminal${NC}"
+        openocd -f tools/esp32c6_final.cfg
+        ;;
+        
+    "gdb")
+        setup_environment
+        echo -e "${BLUE}🐛 Connecting GDB to OpenOCD...${NC}"
+        if [ ! -f "build/"*.elf ]; then
+            echo -e "${RED}❌ No ELF file found. Run './vesc build' first.${NC}"
+            exit 1
+        fi
+        ELF_FILE=$(ls build/*.elf | head -1)
+        riscv32-esp-elf-gdb "$ELF_FILE" -ex "target remote :3333"
+        ;;
+        
+    "memory")
+        setup_environment
+        echo -e "${BLUE}📊 Analyzing memory usage...${NC}"
+        if [ -f "tools/esp32c6_memory_debug.py" ]; then
+            python tools/esp32c6_memory_debug.py --analyze
+        else
+            idf.py size
+        fi
+        ;;
+        
+    "size")
+        setup_environment
+        echo -e "${BLUE}📏 Analyzing build size...${NC}"
+        idf.py size
+        ;;
+        
+    "logs")
+        echo -e "${BLUE}📋 Recent debug logs:${NC}"
+        if [ -d "logs" ]; then
+            ls -la logs/ | tail -10
+            echo ""
+            echo -e "${YELLOW}Latest log:${NC}"
+            tail -20 logs/$(ls -t logs/ | head -1) 2>/dev/null || echo "No logs found"
+        else
+            echo -e "${YELLOW}No logs directory found${NC}"
+        fi
+        ;;
+        
+    "dev")
+        print_logo
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - dev command used" >> .vesc_analytics.log 2>/dev/null || true
+        echo -e "${BLUE}🚀 Full development cycle: build + flash + monitor${NC}"
+        setup_environment
+        echo -e "${BLUE}Step 1/3: Building...${NC}"
+        idf.py build
+        echo -e "${BLUE}Step 2/3: Flashing...${NC}"
+        idf.py flash
+        echo -e "${BLUE}Step 3/3: Monitoring... (Ctrl+] to exit)${NC}"
+        idf.py monitor
+        ;;
+        
+    "quick")
+        print_logo
+        echo -e "${BLUE}⚡ Quick validation: check + build + flash${NC}"
+        setup_environment
+        echo -e "${BLUE}Step 1/3: Environment check...${NC}"
+        python tools/debug_helper.py --check
+        echo -e "${BLUE}Step 2/3: Building...${NC}"
+        idf.py build
+        echo -e "${BLUE}Step 3/3: Flashing...${NC}"
+        idf.py flash
+        echo -e "${GREEN}✅ Quick cycle complete! Use './vesc monitor' to see output.${NC}"
+        ;;
+        
+    "full")
+        print_logo
+        echo -e "${BLUE}🔥 Complete workflow: setup + check + build + test${NC}"
+        ./setup_esp_env.sh
+        setup_environment
+        echo -e "${BLUE}Running comprehensive validation...${NC}"
+        python tools/debug_helper.py --check
+        echo -e "${BLUE}Building firmware...${NC}"
+        idf.py build
+        echo -e "${BLUE}Running tests...${NC}"
+        python tools/esp32c6_unified_debugger.py --test
+        echo -e "${GREEN}🎉 Full validation complete! Ready for development.${NC}"
+        ;;
+        
+    "analyze")
+        setup_environment
+        echo -e "${BLUE}🔍 Running advanced device analysis...${NC}"
+        python tools/esptool_advanced_suite.py --info-only
+        ;;
+        
+    "troubleshoot") 
+        setup_environment
+        echo -e "${BLUE}🔧 Running comprehensive troubleshooting...${NC}"
+        python tools/comprehensive_troubleshooting.py
+        ;;
+        
+    "discover")
+        print_logo
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - discover command used" >> .vesc_analytics.log 2>/dev/null || true
+        echo -e "${BLUE}🔍 ESP32-C6 Development Tools Discovery${NC}"
+        echo ""
+        echo -e "${GREEN}📱 Slash Commands Available:${NC} (Type / in Claude Code)"
+        echo "  /esp-troubleshoot   - Comprehensive device troubleshooting"
+        echo "  /esp-analyze        - Advanced device analysis"
+        echo "  /esp-debug          - Interactive debugging"
+        echo "  /esp-build          - Build and flash operations"
+        echo "  /esp-discover       - Tool exploration"
+        echo "  /esp-analyze-code   - Static code analysis"
+        echo ""
+        echo -e "${GREEN}🔧 Specialized Python Tools:${NC} (24+ tools in tools/)"
+        ls -1 tools/*.py | head -10 | sed 's/^/  /'
+        echo "  ... and $(ls tools/*.py | wc -l) total Python tools"
+        echo ""
+        echo -e "${GREEN}⚡ Quick Access Commands:${NC}"
+        echo "  ./vesc check        - Environment validation"
+        echo "  ./vesc dev          - Build + flash + monitor"
+        echo "  ./vesc debug        - Interactive debugging"
+        echo "  ./vesc troubleshoot - Problem diagnosis"
+        echo ""
+        echo -e "${GREEN}📚 Documentation:${NC}"
+        echo "  QUICK_START_GUIDE.md - Complete developer reference"
+        echo "  CLAUDE.md - Project context and tool discovery"
+        echo "  tools/GETTING_STARTED.md - Tool documentation"
+        echo ""
+        echo -e "${GREEN}📊 Analytics:${NC}"
+        echo "  ./vesc_analytics_report.sh - View usage analytics"
+        ;;
+        
+    "suggest")
+        setup_environment
+        echo -e "${BLUE}💡 Smart Tool Recommendations${NC}"
+        echo ""
+        
+        # Log usage analytics
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - suggest command used" >> .vesc_analytics.log 2>/dev/null || true
+        
+        # Check if device is connected
+        if lsusb | grep -q "303a:1001"; then
+            echo -e "${GREEN}✅ ESP32-C6 device detected${NC}"
+            echo "🎯 Recommended: ./vesc analyze (device analysis)"
+        else
+            echo -e "${YELLOW}⚠️  No ESP32 device detected${NC}"  
+            echo "🎯 Recommended: ./vesc troubleshoot (connection issues)"
+        fi
+        
+        # Check if build exists
+        if [ -d "build" ]; then
+            echo -e "${GREEN}✅ Build directory exists${NC}"
+            echo "🎯 Recommended: ./vesc flash (flash existing build)"
+        else
+            echo -e "${YELLOW}⚠️  No build directory${NC}"
+            echo "🎯 Recommended: ./vesc build (create firmware)"
+        fi
+        
+        # Check environment
+        if [ -z "$IDF_PATH" ]; then
+            echo -e "${YELLOW}⚠️  ESP-IDF environment not active${NC}"
+            echo "🎯 Recommended: ./vesc check (environment setup)"
+        else
+            echo -e "${GREEN}✅ ESP-IDF environment ready${NC}"
+            echo "🎯 Recommended: ./vesc dev (complete workflow)"
+        fi
+        
+        echo ""
+        echo -e "${BLUE}Based on current project state:${NC}"
+        echo "  Type /esp-troubleshoot in Claude for automated fixes"
+        echo "  Run ./vesc discover to explore all tools"
+        
+        # Show usage analytics if available
+        if [ -f ".vesc_analytics.log" ]; then
+            usage_count=$(wc -l < .vesc_analytics.log 2>/dev/null || echo "0")
+            if [ "$usage_count" -gt 0 ]; then
+                echo ""
+                echo -e "${CYAN}📊 Usage: $usage_count commands tracked${NC}"
+            fi
+        fi
+        ;;
+        
+    "tools")
+        echo -e "${BLUE}🛠️  ESP32-C6 Specialized Tools${NC}"
+        echo ""
+        echo -e "${GREEN}Analysis & Diagnostics:${NC}"
+        echo "  comprehensive_troubleshooting.py - Automated problem resolution"
+        echo "  esptool_advanced_suite.py       - Device analysis and flash ops"
+        echo "  static_analysis_suite.py        - Code quality analysis"
+        echo ""
+        echo -e "${GREEN}Debugging & Testing:${NC}"
+        echo "  openocd_telnet_demo.py          - Advanced OpenOCD automation"
+        echo "  openocd_scripting_automation.py - Production debugging scripts"
+        echo "  esp32c6_unified_debugger.py     - Complete debugging environment"
+        echo ""
+        echo -e "${GREEN}Memory & Performance:${NC}"
+        echo "  esp32c6_memory_debug.py         - Memory analysis and optimization"
+        echo "  debug_helper.py                 - Environment validation"
+        echo ""
+        echo "📁 Total: $(ls tools/*.py | wc -l) Python tools + $(ls tools/*.cfg tools/*.sh 2>/dev/null | wc -l) config/script files"
+        echo ""
+        echo -e "${BLUE}Usage:${NC} python tools/[tool-name].py --help"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - tools command used" >> .vesc_analytics.log 2>/dev/null || true
+        ;;
+        
+    "")
+        print_help
+        ;;
+        
+    *)
+        echo -e "${RED}❌ Unknown command: $1${NC}"
+        echo ""
+        print_help
+        exit 1
+        ;;
+esac

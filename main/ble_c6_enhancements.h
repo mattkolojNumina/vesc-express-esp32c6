@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "sdkconfig.h"
 
 #ifdef CONFIG_BT_ENABLED
 #ifdef CONFIG_IDF_TARGET_ESP32C6

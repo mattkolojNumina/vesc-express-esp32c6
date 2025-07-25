@@ -26,6 +26,7 @@
 #include "packet.h"
 #include "commands.h"
 #include "datatypes.h"
+#include "esp_log.h"
 
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -345,7 +346,7 @@ static void broadcast_task(void *arg) {
 	for (;;) {
 		char sendbuf[50];
 		size_t ind = 0;
-		if (wifi_mode == WIFI_MODE_ACCESS_POINT) {
+		if (wifi_mode == WIFI_MODE_ACCESS_POINT || wifi_mode == WIFI_MODE_APSTA_CUSTOM) {
 			ind += sprintf(sendbuf, "%s::192.168.4.1::65102", backup.config.ble_name) + 1;
 		} else {
 			ind += sprintf(sendbuf, "%s::" IPSTR "::65102", backup.config.ble_name, IP2STR(&ip)) + 1;
@@ -415,6 +416,23 @@ void comm_wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t eve
 		
 		ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
 		ip = event->ip_info.ip;
+		
+		// Enhanced IP logging for debugging network accessibility
+		ESP_LOGI("COMM_WIFI", "WiFi STA got IP: " IPSTR, IP2STR(&ip));
+		ESP_LOGI("COMM_WIFI", "Gateway: " IPSTR, IP2STR(&event->ip_info.gw));
+		ESP_LOGI("COMM_WIFI", "Netmask: " IPSTR, IP2STR(&event->ip_info.netmask));
+		
+		// Log network interface details for debugging
+		esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+		if (netif != NULL) {
+			esp_netif_ip_info_t ip_info;
+			if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
+				ESP_LOGI("COMM_WIFI", "Netif IP: " IPSTR, IP2STR(&ip_info.ip));
+				ESP_LOGI("COMM_WIFI", "Netif GW: " IPSTR, IP2STR(&ip_info.gw));
+				ESP_LOGI("COMM_WIFI", "Netif Mask: " IPSTR, IP2STR(&ip_info.netmask));
+			}
+		}
+		
 		is_connecting = false;
 		is_connected = true;
 		LED_RED_ON();
@@ -492,9 +510,15 @@ void comm_wifi_init(void) {
 	esp_event_loop_create_default();
 	
 	wifi_mode = backup.config.wifi_mode;
+	
+	// Debug logging for WiFi configuration
+	ESP_LOGI("COMM_WIFI", "WiFi Init: Mode=%d, AP_SSID='%s'", wifi_mode, backup.config.wifi_ap_ssid);
 
 	if (wifi_mode == WIFI_MODE_ACCESS_POINT) {
 		esp_netif_create_default_wifi_ap();
+	} else if (wifi_mode == WIFI_MODE_APSTA_CUSTOM) {
+		esp_netif_create_default_wifi_ap();
+		esp_netif_create_default_wifi_sta();
 	} else {
 		esp_netif_create_default_wifi_sta();
 	}
@@ -560,9 +584,28 @@ void comm_wifi_init(void) {
 			NULL,
 			&instance_got_ip);
 
-	esp_wifi_set_mode(WIFI_MODE_APSTA);
+	// Map custom wifi_mode to ESP-IDF wifi mode
+	wifi_mode_t esp_wifi_mode;
+	switch (wifi_mode) {
+		case WIFI_MODE_STATION:
+			esp_wifi_mode = WIFI_MODE_STA;
+			break;
+		case WIFI_MODE_ACCESS_POINT:
+			esp_wifi_mode = WIFI_MODE_AP;
+			break;
+		case WIFI_MODE_APSTA_CUSTOM:
+			esp_wifi_mode = WIFI_MODE_APSTA;
+			break;
+		default:
+			esp_wifi_mode = WIFI_MODE_NULL;
+			break;
+	}
+	esp_wifi_set_mode(esp_wifi_mode);
 
-	if (wifi_mode == WIFI_MODE_ACCESS_POINT) {
+	// Configure Access Point (for both AP-only and AP+STA modes)
+	ESP_LOGI("COMM_WIFI", "Checking AP config condition: wifi_mode=%d, ACCESS_POINT=%d, APSTA_CUSTOM=%d", 
+			wifi_mode, WIFI_MODE_ACCESS_POINT, WIFI_MODE_APSTA_CUSTOM);
+	if (wifi_mode == WIFI_MODE_ACCESS_POINT || wifi_mode == WIFI_MODE_APSTA_CUSTOM) {
 		wifi_config = (wifi_config_t){
 			.ap = {
 				.ssid = "",
@@ -570,11 +613,10 @@ void comm_wifi_init(void) {
 #ifdef CONFIG_IDF_TARGET_ESP32C6
 				.channel = 6,                    // Channel 6 for better 2.4GHz performance
 				.max_connection = 8,             // ESP32-C6 supports more connections
-				.authmode = WIFI_AUTH_WPA3_PSK,  // WiFi 6 WPA3 security
-				.authmode = WIFI_AUTH_WPA2_WPA3_PSK, // Enhanced security with WPA3 support
+				.authmode = WIFI_AUTH_WPA_WPA2_PSK, // More compatible WPA2 for debugging
 				.pmf_cfg = {
 					.capable = true,
-					.required = true,            // PMF required for WPA3
+					.required = false,           // PMF optional for better compatibility
 				},
 				.ftm_responder = true,           // Fine Timing Measurement
 #else
@@ -592,9 +634,14 @@ void comm_wifi_init(void) {
 
 		strcpy((char*)wifi_config.ap.ssid, (char*)backup.config.wifi_ap_ssid);
 		strcpy((char*)wifi_config.ap.password, (char*)backup.config.wifi_ap_key);
+		
+		ESP_LOGI("COMM_WIFI", "AP: '%s' Ch:%d", wifi_config.ap.ssid, wifi_config.ap.channel);
 
 		esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
-	} else {
+	}
+	
+	// Configure Station (for both STA-only and AP+STA modes)
+	if (wifi_mode == WIFI_MODE_STATION || wifi_mode == WIFI_MODE_APSTA_CUSTOM) {
 		wifi_config = (wifi_config_t){
 			.sta = {
 				.ssid = "",

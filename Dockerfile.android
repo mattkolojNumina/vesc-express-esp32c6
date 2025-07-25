@@ -1,0 +1,71 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV QT_VERSION=5.15.2
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV ANDROID_NDK_ROOT=/opt/android-ndk
+ENV ANDROID_HOME=$ANDROID_SDK_ROOT
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    unzip \
+    openjdk-8-jdk \
+    git \
+    cmake \
+    ninja-build \
+    python3 \
+    python3-pip \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libpulse-dev \
+    libx11-dev \
+    libxext-dev \
+    libxfixes-dev \
+    libxi-dev \
+    libxrender-dev \
+    libxcb1-dev \
+    libxcb-glx0-dev \
+    libxcb-keysyms1-dev \
+    libxcb-image0-dev \
+    libxcb-shm0-dev \
+    libxcb-icccm4-dev \
+    libxcb-sync-dev \
+    libxcb-xfixes0-dev \
+    libxcb-shape0-dev \
+    libxcb-randr0-dev \
+    libxcb-render-util0-dev \
+    libxcb-xinerama0-dev \
+    libxkbcommon-dev \
+    libxkbcommon-x11-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and extract Qt
+RUN mkdir -p /opt/qt && \
+    cd /opt && \
+    wget -q https://download.qt.io/archive/qt/5.15/5.15.2/submodules/qtbase-everywhere-src-${QT_VERSION}.tar.xz && \
+    tar xf qtbase-everywhere-src-${QT_VERSION}.tar.xz && \
+    rm qtbase-everywhere-src-${QT_VERSION}.tar.xz
+
+# Copy existing Android SDK/NDK
+COPY Android/Latest/Sdk /opt/android-sdk
+RUN ln -s /opt/android-sdk/ndk/23.1.7779620 /opt/android-ndk
+
+# Set environment
+ENV PATH="/opt/qt/bin:${PATH}"
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+# Configure and build Qt for Android
+RUN cd /opt/qtbase-everywhere-src-${QT_VERSION} && \
+    ./configure -xplatform android-clang \
+        -prefix /opt/qt \
+        -android-ndk $ANDROID_NDK_ROOT \
+        -android-sdk $ANDROID_SDK_ROOT \
+        -opensource -confirm-license \
+        -skip qtwebengine \
+        -nomake tests -nomake examples && \
+    make -j$(nproc) && \
+    make install
+
+WORKDIR /build

@@ -1,0 +1,36 @@
+{
+  "tool_name": "curl",
+  "recommendation_rules": [
+    {
+      "condition": "no_config_found",
+      "recommendation": "./curl_ultimate setup",
+      "priority": "high",
+      "description": "Initial setup required"
+    },
+    {
+      "condition": "service_not_running",
+      "recommendation": "./curl_ultimate start",
+      "priority": "medium",
+      "description": "Start the service"
+    },
+    {
+      "condition": "high_usage_detected",
+      "recommendation": "./curl_ultimate optimize",
+      "priority": "medium",
+      "description": "Optimize based on usage patterns"
+    },
+    {
+      "condition": "errors_detected",
+      "recommendation": "./curl_ultimate troubleshoot",
+      "priority": "high",
+      "description": "Resolve detected issues"
+    }
+  ],
+  "context_patterns": [
+    "project_state",
+    "service_status",
+    "usage_history",
+    "error_frequency",
+    "performance_metrics"
+  ]
+}

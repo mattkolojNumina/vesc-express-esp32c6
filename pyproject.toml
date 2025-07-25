@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "esp32-debug-tools"
+version = "1.0.0"
+description = "Comprehensive ESP32-C6 debugging and development tools"
+readme = "tools/README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "ESP32-C6 Debug Tools Suite"}
+]
+keywords = ["esp32", "esp32c6", "debugging", "openocd", "gdb", "jtag", "embedded", "wsl2"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers", 
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: Software Development :: Embedded Systems",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9", 
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "stevedore>=5.0.0",
+    "click>=8.0.0,<8.2.0", 
+    "fastmcp>=2.0.0",
+    "pydantic>=2.6.0,<2.10.0",
+    "rich>=13.7.0,<14.0.0",
+    "typer>=0.9.0,<0.16.0",
+]
+
+[project.urls]
+"Bug Reports" = "https://github.com/your-repo/esp32-debug-tools/issues"
+"Source" = "https://github.com/your-repo/esp32-debug-tools"
+"Documentation" = "https://github.com/your-repo/esp32-debug-tools/blob/main/ESP32_IDF_DEBUGGING_SIMPLIFIED.md"
+
+[project.scripts]
+esp32-debug = "esp32_debug_cli:main"
+
+[project.entry-points."esp32_debug_tools"]
+openocd_setup = "esp32c6_openocd_setup:ESP32C6OpenOCDSetup"
+gdb_automation = "esp32c6_gdb_automation:ESP32C6GDBAutomation"
+memory_debug = "esp32c6_memory_debug:ESP32C6MemoryDebugger"
+wsl2_setup = "wsl2_esp32_debug_setup:WSL2ESP32DebugSetup" 
+unified_debugger = "esp32c6_unified_debugger:ESP32C6UnifiedDebugger"
+
+[project.entry-points."esp32_debug_commands"]
+setup-openocd = "esp32c6_openocd_setup:cli_main"
+gdb-debug = "esp32c6_gdb_automation:cli_main"
+memory-analyze = "esp32c6_memory_debug:cli_main"
+setup-wsl2 = "wsl2_esp32_debug_setup:cli_main"
+debug-wizard = "esp32c6_unified_debugger:cli_main"
+
+[project.entry-points."esp32_mcp_tools"]
+openocd_config = "esp32c6_openocd_setup:create_openocd_config"
+run_debug_session = "esp32c6_gdb_automation:run_debug_session_mcp"
+analyze_memory = "esp32c6_memory_debug:analyze_memory_mcp"
+setup_wsl2 = "wsl2_esp32_debug_setup:setup_wsl2_mcp"
+debug_wizard = "esp32c6_unified_debugger:quick_start_wizard_mcp"
+list_tools = "esp32_debug_mcp_server:list_debug_tools"
+server_info = "esp32_debug_mcp_server:get_server_info"
+
+[tool.setuptools]
+package-dir = {"" = "tools"}
+
+[tool.setuptools.packages.find]
+where = ["tools"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.cfg", "*.json", "*.sh", "*.gdb"]

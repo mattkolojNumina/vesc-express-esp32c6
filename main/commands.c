@@ -40,6 +40,7 @@
 #include OVR_CONF_PARSER_H
 #else
 #include "confparser.h"
+#include "conf_custom.h"
 #endif
 
 #ifdef OVR_CONF_XML_H
@@ -53,6 +54,7 @@
 #include "main.h"
 #include "crc.h"
 #include "comm_wifi.h"
+// #include "debug_wifi.h"  // DISABLED: WiFi debug components causing memory pressure
 #include "log.h"
 #include "nmea.h"
 #include "lispif.h"
@@ -196,7 +198,6 @@ static void block_task(void *arg) {
 		}
 			break;
 
-
 		default:
 			break;
 		}
@@ -224,6 +225,9 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 	packet_id = data[0];
 	data++;
 	len--;
+
+	// WiFi debug logging DISABLED for ESP32-C6 stability
+	// debug_wifi_log_vesc_command(packet_id, data, len, false);
 
 	if (packet_id != COMM_LISP_RMSG) {
 		send_func = reply_func;
@@ -391,98 +395,12 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 	} break;
 
 	case COMM_GET_CUSTOM_CONFIG:
-	case COMM_GET_CUSTOM_CONFIG_DEFAULT: {
-		main_config_t *conf = calloc(1, sizeof(main_config_t));
-
-		int conf_ind = data[0];
-
-		if (conf_ind != 0) {
-			break;
-		}
-
-		if (packet_id == COMM_GET_CUSTOM_CONFIG) {
-			*conf = backup.config;
-		} else {
-#ifdef OVR_CONF_SET_DEFAULTS
-			OVR_CONF_SET_DEFAULTS(conf);
-#else
-			confparser_set_defaults_main_config_t(conf);
-#endif
-		}
-
-		uint8_t *send_buffer_global = mempools_get_packet_buffer();
-		int32_t ind = 0;
-		send_buffer_global[ind++] = packet_id;
-		send_buffer_global[ind++] = conf_ind;
-#ifdef OVR_CONF_SERIALIZE
-		int32_t len = OVR_CONF_SERIALIZE(send_buffer_global + ind, conf);
-#else
-		int32_t len = confparser_serialize_main_config_t(send_buffer_global + ind, conf);
-#endif
-		commands_send_packet(send_buffer_global, len + ind);
-		mempools_free_packet_buffer(send_buffer_global);
-
-		free(conf);
-	} break;
-
-	case COMM_SET_CUSTOM_CONFIG: {
-		main_config_t *conf = calloc(1, sizeof(main_config_t));
-		*conf = backup.config;
-
-		int conf_ind = data[0];
-
-#ifdef OVR_CONF_DESERIALIZE
-		if (conf_ind == 0 && OVR_CONF_DESERIALIZE(data + 1, conf)) {
-#else
-		if (conf_ind == 0 && confparser_deserialize_main_config_t(data + 1, conf)) {
-#endif
-			bool baud_changed = backup.config.can_baud_rate != conf->can_baud_rate;
-			backup.config = *conf;
-
-			if (baud_changed) {
-				comm_can_update_baudrate(0);
-			}
-
-			main_store_backup_data();
-
-			int32_t ind = 0;
-			uint8_t send_buffer[50];
-			send_buffer[ind++] = packet_id;
-			reply_func(send_buffer, ind);
-		} else {
-			commands_printf("Warning: Could not set configuration");
-		}
-
-		free(conf);
-	} break;
-
+	case COMM_GET_CUSTOM_CONFIG_DEFAULT:
+	case COMM_SET_CUSTOM_CONFIG:
 	case COMM_GET_CUSTOM_CONFIG_XML: {
-		int32_t ind = 0;
-
-		int conf_ind = data[ind++];
-
-		if (conf_ind != 0) {
-			break;
-		}
-
-		int32_t len_conf = buffer_get_int32(data, &ind);
-		int32_t ofs_conf = buffer_get_int32(data, &ind);
-
-		if ((len_conf + ofs_conf) > DATA_MAIN_CONFIG_T__SIZE || len_conf > (PACKET_MAX_PL_LEN - 10)) {
-			break;
-		}
-
-		uint8_t *send_buffer_global = mempools_get_packet_buffer();
-		ind = 0;
-		send_buffer_global[ind++] = packet_id;
-		send_buffer_global[ind++] = conf_ind;
-		buffer_append_int32(send_buffer_global, DATA_MAIN_CONFIG_T__SIZE, &ind);
-		buffer_append_int32(send_buffer_global, ofs_conf, &ind);
-		memcpy(send_buffer_global + ind, data_main_config_t_ + ofs_conf, len_conf);
-		ind += len_conf;
-		reply_func(send_buffer_global, ind);
-		mempools_free_packet_buffer(send_buffer_global);
+		conf_custom_process_cmd(data - 1, len + 1, reply_func);
 	} break;
+
 
 	case COMM_FILE_LIST: {
 		int32_t ind = 0;
@@ -1073,6 +991,82 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 			xSemaphoreGive(block_sem);
 		}
 		break;
+
+	// Debug commands - Memory-efficient protocol extension
+	case COMM_DEBUG_GET_SYSTEM_INFO: {
+		int32_t ind = 0;
+		uint8_t send_buffer[80];
+		send_buffer[ind++] = packet_id;
+		
+		// System info with minimal memory footprint
+		buffer_append_uint32(send_buffer, xTaskGetTickCount() * portTICK_PERIOD_MS, &ind); // uptime_ms
+		buffer_append_uint32(send_buffer, esp_get_free_heap_size(), &ind);                   // free_heap
+		buffer_append_uint32(send_buffer, esp_get_minimum_free_heap_size(), &ind);           // min_free_heap
+		buffer_append_uint16(send_buffer, uxTaskGetNumberOfTasks(), &ind);                   // task_count
+		
+		// WiFi RSSI if connected
+		wifi_ap_record_t ap_info;
+		int8_t rssi = -100; // Default disconnected value
+		if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
+			rssi = ap_info.rssi;
+		}
+		send_buffer[ind++] = (uint8_t)(rssi + 128); // Convert int8_t to uint8_t
+		
+		// System status flags
+		uint8_t status_flags = 0;
+		if (comm_wifi_is_connected()) status_flags |= 0x01;     // WiFi connected
+		if (esp_get_free_heap_size() > 20480) status_flags |= 0x02; // Memory OK
+		if (uxTaskGetNumberOfTasks() < 15) status_flags |= 0x04;    // Task load OK
+		send_buffer[ind++] = status_flags;
+		
+		reply_func(send_buffer, ind);
+	} break;
+	
+	case COMM_DEBUG_SET_LOG_LEVEL: {
+		if (len >= 1) {
+			// Simple log level storage (no dynamic allocation)
+			static uint8_t debug_log_level = 3; // Default INFO level
+			debug_log_level = data[0] > 5 ? 5 : data[0]; // Clamp to valid range
+			
+			int32_t ind = 0;
+			uint8_t send_buffer[10];
+			send_buffer[ind++] = packet_id;
+			send_buffer[ind++] = debug_log_level;
+			reply_func(send_buffer, ind);
+		}
+	} break;
+	
+	case COMM_DEBUG_GET_LOG_LEVEL: {
+		static uint8_t debug_log_level = 3; // Default INFO level
+		int32_t ind = 0;
+		uint8_t send_buffer[10];
+		send_buffer[ind++] = packet_id;
+		send_buffer[ind++] = debug_log_level;
+		reply_func(send_buffer, ind);
+	} break;
+	
+	case COMM_DEBUG_STREAM_START: {
+		// Enable debug streaming through existing infrastructure
+		int32_t ind = 0;
+		uint8_t send_buffer[20];
+		send_buffer[ind++] = packet_id;
+		send_buffer[ind++] = 1; // Success
+		
+		// Send immediate system snapshot
+		buffer_append_uint32(send_buffer, esp_get_free_heap_size(), &ind);
+		buffer_append_uint16(send_buffer, uxTaskGetNumberOfTasks(), &ind);
+		
+		reply_func(send_buffer, ind);
+	} break;
+	
+	case COMM_DEBUG_STREAM_STOP: {
+		// Disable debug streaming
+		int32_t ind = 0;
+		uint8_t send_buffer[10];
+		send_buffer[ind++] = packet_id;
+		send_buffer[ind++] = 0; // Stopped
+		reply_func(send_buffer, ind);
+	} break;
 
 	default:
 		break;

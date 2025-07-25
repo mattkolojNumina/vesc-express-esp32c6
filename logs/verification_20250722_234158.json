@@ -1,0 +1,223 @@
+{
+  "timestamp": "2025-07-22T23:41:58.285784",
+  "execution_time": 0.012856721878051758,
+  "overall_status": "PASSED",
+  "statistics": {
+    "total_tests": 26,
+    "passed_tests": 26,
+    "failed_tests": 0,
+    "critical_failures": 0,
+    "pass_rate": 1.0,
+    "average_score": 0.9153846153846155
+  },
+  "results": [
+    {
+      "test_name": "Build System",
+      "passed": true,
+      "details": "All required components present, C6 optimization: 100.0%",
+      "timestamp": "2025-07-22T23:41:58.274775",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "ESP32-C6 Hardware configuration",
+      "passed": true,
+      "details": "File hw_devkit_c6.c: Found",
+      "timestamp": "2025-07-22T23:41:58.275565",
+      "score": 1.0,
+      "critical": true
+    },
+    {
+      "test_name": "ESP32-C6 Hardware header",
+      "passed": true,
+      "details": "File hw_devkit_c6.h: Found",
+      "timestamp": "2025-07-22T23:41:58.275633",
+      "score": 1.0,
+      "critical": true
+    },
+    {
+      "test_name": "ESP32-C6 WiFi 6 enhancements",
+      "passed": true,
+      "details": "File wifi_c6_enhancements.c: Found",
+      "timestamp": "2025-07-22T23:41:58.275709",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "ESP32-C6 BLE 5.3 enhancements",
+      "passed": true,
+      "details": "File ble_c6_enhancements.c: Found",
+      "timestamp": "2025-07-22T23:41:58.275748",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "ESP32-C6 Power management",
+      "passed": true,
+      "details": "File power_management_c6.c: Found",
+      "timestamp": "2025-07-22T23:41:58.275776",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "ESP32-C6 IEEE 802.15.4 support",
+      "passed": true,
+      "details": "File ieee802154_c6.c: Found",
+      "timestamp": "2025-07-22T23:41:58.275801",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "ESP32-C6 VESC integration",
+      "passed": true,
+      "details": "File vesc_c6_integration.c: Found",
+      "timestamp": "2025-07-22T23:41:58.275824",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Android Compatibility",
+      "passed": true,
+      "details": "File main/android_compat.c: Found",
+      "timestamp": "2025-07-22T23:41:58.276378",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Android Compatibility",
+      "passed": true,
+      "details": "File main/android_compat.h: Found",
+      "timestamp": "2025-07-22T23:41:58.276864",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Android Compatibility",
+      "passed": true,
+      "details": "File main/test_android_compat.c: Found",
+      "timestamp": "2025-07-22T23:41:58.276970",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Android Optimization Modes",
+      "passed": true,
+      "details": "Found 3/3 Android optimization modes",
+      "timestamp": "2025-07-22T23:41:58.277354",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Communication WiFi communication",
+      "passed": true,
+      "details": "WiFi communication: Found with stack optimizations",
+      "timestamp": "2025-07-22T23:41:58.277852",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Communication BLE communication",
+      "passed": true,
+      "details": "BLE communication: Found, basic implementation",
+      "timestamp": "2025-07-22T23:41:58.278375",
+      "score": 0.6,
+      "critical": false
+    },
+    {
+      "test_name": "Communication CAN communication",
+      "passed": true,
+      "details": "CAN communication: Found with stack optimizations",
+      "timestamp": "2025-07-22T23:41:58.278952",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Communication UART communication",
+      "passed": true,
+      "details": "UART communication: Found, basic implementation",
+      "timestamp": "2025-07-22T23:41:58.279440",
+      "score": 0.6,
+      "critical": false
+    },
+    {
+      "test_name": "Communication Command processing",
+      "passed": true,
+      "details": "Command processing: Found, basic implementation",
+      "timestamp": "2025-07-22T23:41:58.279994",
+      "score": 0.6,
+      "critical": true
+    },
+    {
+      "test_name": "Communication Packet handling",
+      "passed": true,
+      "details": "Packet handling: Found, basic implementation",
+      "timestamp": "2025-07-22T23:41:58.280409",
+      "score": 0.6,
+      "critical": true
+    },
+    {
+      "test_name": "LispBM Integration",
+      "passed": true,
+      "details": "LispBM integrated with test suite",
+      "timestamp": "2025-07-22T23:41:58.281182",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Security Features",
+      "passed": true,
+      "details": "Found 4/5 security features: Protected Management Frames, Secure boot configuration, WiFi WPA3 security, Flash encryption",
+      "timestamp": "2025-07-22T23:41:58.283343",
+      "score": 0.8,
+      "critical": false
+    },
+    {
+      "test_name": "Memory Optimization",
+      "passed": true,
+      "details": "Acceptable size: 2,086,768 bytes",
+      "timestamp": "2025-07-22T23:41:58.283818",
+      "score": 0.6,
+      "critical": false
+    },
+    {
+      "test_name": "Documentation",
+      "passed": true,
+      "details": "Main project README: Complete (10,430 chars)",
+      "timestamp": "2025-07-22T23:41:58.284215",
+      "score": 1.0,
+      "critical": true
+    },
+    {
+      "test_name": "Documentation",
+      "passed": true,
+      "details": "Android compatibility guide: Complete (5,123 chars)",
+      "timestamp": "2025-07-22T23:41:58.284569",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Documentation",
+      "passed": true,
+      "details": "Configuration documentation: Complete (11,229 chars)",
+      "timestamp": "2025-07-22T23:41:58.284955",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Documentation",
+      "passed": true,
+      "details": "Deployment guide: Complete (8,114 chars)",
+      "timestamp": "2025-07-22T23:41:58.285322",
+      "score": 1.0,
+      "critical": false
+    },
+    {
+      "test_name": "Documentation",
+      "passed": true,
+      "details": "Debugging setup guide: Complete (4,768 chars)",
+      "timestamp": "2025-07-22T23:41:58.285748",
+      "score": 1.0,
+      "critical": false
+    }
+  ]
+}

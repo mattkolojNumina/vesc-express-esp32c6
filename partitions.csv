@@ -1,0 +1,14 @@
+# Name,   Type, SubType, Offset,  Size,   Flags
+# Note: ESP32-C6 8MB flash partition table for VESC Express with OTA
+# Optimized layout for 2MB+ firmware with room for growth
+# Bootloader at 0x0000 (automatically placed)
+# Partition table at 0x8000 (automatically placed)
+nvs,      data, nvs,     0x9000,  0x6000,
+otadata,  data, ota,     0xf000,  0x2000,
+app0,     app,  ota_0,   0x20000, 0x300000,
+app1,     app,  ota_1,   0x320000,0x300000,
+lisp,     data, nvs,     0x620000,0x80000,
+qml,      data, nvs,     0x6A0000,0x40000,
+coredump, data, coredump,0x6E0000,0x10000,
+logs,     data, nvs,     0x6F0000,0x10000,
+factory,  data, nvs,     0x700000,0x100000,

@@ -20,17 +20,17 @@
 
 // WiFi Mode
 #ifndef CONF_WIFI_MODE
-#define CONF_WIFI_MODE 2  // Enable WiFi AP mode (WIFI_MODE_ACCESS_POINT)
+#define CONF_WIFI_MODE 3  // Enable WiFi AP+STA mode (WIFI_MODE_APSTA)
 #endif
 
 // Station Mode SSID
 #ifndef CONF_WIFI_STA_SSID
-#define CONF_WIFI_STA_SSID ""
+#define CONF_WIFI_STA_SSID "Mbr-919n"
 #endif
 
 // Station Mode Key
 #ifndef CONF_WIFI_STA_KEY
-#define CONF_WIFI_STA_KEY ""
+#define CONF_WIFI_STA_KEY "Brightstar132"
 #endif
 
 // Access Point SSID

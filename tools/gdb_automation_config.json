@@ -1,0 +1,8 @@
+{
+  "openocd_config": "esp32c6_optimized.cfg",
+  "default_profile": "basic",
+  "gdb_timeout": 30,
+  "openocd_port": 3333,
+  "telnet_port": 4444,
+  "session_history": []
+}

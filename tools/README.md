@@ -1,274 +1,174 @@
-# ESP32-C6 VESC Express Development Tools
+# ESP32-C6 Debugging Tools Suite
 
-Enhanced debugging and verification tools for simplified ESP32-C6 development workflow.
+A comprehensive collection of debugging simplification tools for ESP-IDF and ESP32-C6 development, addressing common hardware debugging challenges with OpenOCD, JTAG, and WSL2.
 
-## 🛠️ Tool Suite Overview
-
-### 1. Debug Helper (`debug_helper.py`)
-**Comprehensive hardware debugging utility with intelligent automation**
+## 🚀 Quick Start
 
 ```bash
-# Run comprehensive hardware test
-python3 tools/debug_helper.py --test
+# For first-time setup, run the wizard:
+python3 esp32c6_unified_debugger.py --wizard
 
-# Build and flash only
-python3 tools/debug_helper.py --build --flash
-
-# Monitor serial output for 60 seconds
-python3 tools/debug_helper.py --monitor 60
-
-# Check environment setup
-python3 tools/debug_helper.py --check
+# For daily debugging, use the interactive menu:
+python3 esp32c6_unified_debugger.py --interactive
 ```
 
-**Features:**
-- ✅ Automated environment validation (ESP-IDF, device, OpenOCD)
-- ✅ Intelligent build system with error handling
-- ✅ Flash verification with hash checking
-- ✅ Serial output capture and parsing
-- ✅ OpenOCD hardware debugging integration
-- ✅ GDB command execution automation
-- ✅ Boot sequence analysis with service detection
-- ✅ Comprehensive test reporting with JSON output
+## 📁 Tool Overview
 
-### 2. Verification Suite (`verification_suite.py`)
-**Implementation correctness verification with scoring system**
+| Tool | Purpose | Key Features |
+|------|---------|-------------|
+| `esp32c6_unified_debugger.py` | **Main Interface** | Interactive menu, wizard, session management |
+| `esp32c6_openocd_setup.py` | OpenOCD Configuration | Auto-detection, profiles, VS Code integration |
+| `esp32c6_gdb_automation.py` | GDB Automation | Debug profiles, coredump analysis, monitoring |
+| `esp32c6_memory_debug.py` | Memory Analysis | Layout analysis, heap monitoring, fragmentation |
+| `wsl2_esp32_debug_setup.py` | WSL2 Setup | USB passthrough, permissions, device management |
 
+## 💡 Usage Examples
+
+### Interactive Debugging Menu
 ```bash
-# Run complete verification
-python3 tools/verification_suite.py --test all
-
-# Verify specific components
-python3 tools/verification_suite.py --test android
-python3 tools/verification_suite.py --test esp32c6
-python3 tools/verification_suite.py --test comm
+python3 esp32c6_unified_debugger.py --interactive
 ```
+Provides a menu-driven interface for all debugging operations.
 
-**Verification Categories:**
-- 🏗️ **Build System**: CMakeLists.txt dependencies and ESP-IDF integration
-- 🔧 **ESP32-C6 Features**: Hardware abstraction and enhancement files
-- 📱 **Android Compatibility**: Optimization modes and compatibility layers
-- 📡 **Communication Stack**: WiFi, BLE, CAN, UART protocol implementation
-- 🧠 **LispBM Integration**: Embedded scripting and VESC extensions
-- 🔒 **Security Implementation**: WPA3, secure boot, encryption features
-- 💾 **Memory Optimization**: Flash usage and memory layout analysis
-- 📚 **Documentation**: Completeness and quality assessment
-
-**Scoring System:**
-- **Perfect (5/5)**: All critical tests passed with optimizations
-- **Good (4/5)**: Most tests passed with minor issues
-- **Acceptable (3/5)**: Core functionality present with warnings
-- **Issues (2/5)**: Significant problems requiring attention
-- **Failed (1/5)**: Critical failures preventing operation
-
-### 3. Quick Debug (`quick_debug.sh`)
-**One-command debugging and testing workflow**
-
+### Quick Debug Sessions
 ```bash
-# Complete workflow: build, flash, test, verify
-./tools/quick_debug.sh all
+# Basic debugging
+python3 esp32c6_unified_debugger.py --profile basic
 
-# Quick test sequence
-./tools/quick_debug.sh test
+# Crash analysis
+python3 esp32c6_unified_debugger.py --profile crash
 
-# Individual operations
-./tools/quick_debug.sh check build flash monitor
+# Memory debugging
+python3 esp32c6_unified_debugger.py --profile memory
 ```
 
-**Commands:**
-- `check` - Environment and device validation
-- `build` - Quick firmware build with size reporting
-- `flash` - Flash with verification
-- `monitor` - Serial monitoring with log analysis
-- `openocd` - OpenOCD connection testing
-- `gdb` - Quick GDB hardware debugging session
-- `test` - Comprehensive quick test sequence
-- `verify` - Implementation verification via Python suite
-- `all` - Complete development workflow
-
-**Features:**
-- 🎨 **Colored Output**: Visual status indication
-- ⚡ **Fast Execution**: Optimized command sequences
-- 🔧 **Error Handling**: Graceful failure management
-- 📊 **Progress Reporting**: Real-time status updates
-- 🔗 **Tool Integration**: Seamless integration with Python tools
-
-### 4. Log Monitor (`log_monitor.py`)
-**Real-time intelligent log analysis and system monitoring**
-
+### Memory Analysis
 ```bash
-# Start real-time monitoring
-python3 tools/log_monitor.py -p /dev/ttyACM0
+# Analyze memory layout
+python3 esp32c6_memory_debug.py --analyze
 
-# Monitor with timeout
-python3 tools/log_monitor.py -t 300  # 5 minutes
-
-# Custom serial settings
-python3 tools/log_monitor.py -p /dev/ttyUSB0 -b 460800
+# Check memory fragmentation (requires hardware)
+python3 esp32c6_memory_debug.py --fragmentation
 ```
 
-**Intelligent Features:**
-- 🔍 **Pattern Recognition**: ESP-IDF and VESC log format parsing
-- 🚨 **Error Detection**: Critical error pattern matching
-- ⚠️ **Warning Analysis**: Performance warning identification  
-- 📊 **Metrics Extraction**: Heap, stack, WiFi, uptime tracking
-- 📈 **Real-time Reporting**: Live system metrics dashboard
-- 📁 **Data Persistence**: Raw logs, parsed data, metrics history
-- 🎯 **Issue Categorization**: Automatic error and warning classification
-
-**Monitored Metrics:**
-- **Memory**: Free heap, stack usage per task
-- **Connectivity**: WiFi RSSI, BLE connections, packet counts
-- **System**: Uptime, CPU usage, error rates
-- **Performance**: Response times, connection stability
-
-## 🚀 Quick Start Workflows
-
-### Development Workflow
+### WSL2 Setup
 ```bash
-# 1. Initial setup verification
-./tools/quick_debug.sh check
+# Full WSL2 debugging setup
+python3 wsl2_esp32_debug_setup.py
 
-# 2. Complete development cycle
-./tools/quick_debug.sh all
-
-# 3. Monitor runtime behavior
-python3 tools/log_monitor.py -t 60
+# Device management
+python3 wsl2_debug_scripts/esp32_device_manager.py
 ```
 
-### Debugging Workflow
+## 🎯 Debug Profiles
+
+| Profile | Use Case | Breakpoints |
+|---------|----------|-------------|
+| **basic** | General debugging | `app_main` |
+| **crash** | System crashes | `abort`, `esp_restart`, `_esp_error_check_failed` |
+| **memory** | Memory issues | `malloc`, `free`, `heap_caps_malloc` |
+| **wifi** | WiFi stack issues | `wifi_init`, `esp_wifi_start` |
+| **freertos** | Task debugging | `vTaskDelay`, `vTaskSuspend`, `xTaskCreate` |
+
+## 🔧 Generated Files and Scripts
+
+### OpenOCD Configurations
+- `esp32c6_basic.cfg` - Simple configuration (6MHz)
+- `esp32c6_optimized.cfg` - **Recommended** (20MHz, FreeRTOS support)
+- `esp32c6_production.cfg` - Full features (40MHz)
+
+### Helper Scripts
+- `debug_scripts/quick_debug.sh` - One-command debug session
+- `debug_scripts/start_openocd.sh` - OpenOCD launcher
+- `debug_scripts/start_gdb.sh` - GDB launcher
+- `wsl2_debug_scripts/start_wsl2_debug.sh` - WSL2-specific launcher
+
+### VS Code Integration
+- `.vscode/launch.json` - Debug configuration
+- `.vscode/tasks.json` - OpenOCD task automation
+
+### Memory Debugging
+- `heap_monitor.gdb` - GDB heap monitoring script
+- `memory_debug_tools/heap_tracer.sh` - Heap tracing session
+- `memory_report.json` - Comprehensive memory analysis
+
+## 🛠️ Environment Requirements
+
+- ESP-IDF v5.2+ (v5.5 recommended)
+- OpenOCD with ESP32-C6 support
+- `riscv32-esp-elf-gdb`
+- Python 3.6+
+
+### WSL2 Additional Requirements
+- usbipd-win installed on Windows host
+- ESP32-C6 device with built-in USB JTAG (VID:PID 303a:1001)
+
+## 🚨 Common Troubleshooting
+
+### "OpenOCD connection failed"
 ```bash
-# 1. Comprehensive hardware test
-python3 tools/debug_helper.py --test
+# Check device detection
+python3 esp32c6_openocd_setup.py --detect-only
 
-# 2. Specific issue investigation
-./tools/quick_debug.sh gdb
-
-# 3. Real-time monitoring
-python3 tools/log_monitor.py
+# Kill existing processes
+sudo pkill openocd
 ```
 
-### Verification Workflow  
+### "Device not found in WSL2"
 ```bash
-# 1. Implementation verification
-python3 tools/verification_suite.py --test all
-
-# 2. Component-specific checks
-python3 tools/verification_suite.py --test android
-python3 tools/verification_suite.py --test esp32c6
-
-# 3. Continuous verification
-./tools/quick_debug.sh verify
+# Re-attach USB device
+usbipd.exe detach --busid 1-1
+usbipd.exe attach --wsl --busid 1-1 --auto-attach
 ```
 
-### Production Validation
+### "Permission denied"
 ```bash
-# Complete production readiness check
-./tools/quick_debug.sh all && \
-python3 tools/verification_suite.py --test all && \
-python3 tools/log_monitor.py -t 120
+# Fix permissions
+sudo usermod -a -G dialout $USER
+# Logout and login again
 ```
 
-## 📁 Output Files
-
-### Log Directory Structure
-```
-logs/
-├── debug_YYYYMMDD.log              # Debug helper logs
-├── test_results_YYYYMMDD_HHMMSS.json  # Test results
-├── verification_YYYYMMDD_HHMMSS.json  # Verification reports
-├── raw_monitor_YYYYMMDD_HHMMSS.log    # Raw serial output
-├── parsed_monitor_YYYYMMDD_HHMMSS.json # Parsed log entries
-├── metrics_YYYYMMDD_HHMMSS.json       # System metrics
-└── monitor_report_YYYYMMDD_HHMMSS.json # Final monitoring report
-```
-
-### Report Formats
-All tools generate structured JSON reports for:
-- **Automated Analysis**: Machine-readable results
-- **CI/CD Integration**: Build pipeline compatibility  
-- **Trend Analysis**: Historical comparison
-- **Issue Tracking**: Error pattern identification
-
-## 🔧 Configuration
-
-### Environment Variables
+### "Build not found"
 ```bash
-export ESP_PORT="/dev/ttyACM0"        # Default serial port
-export OPENOCD_CFG="esp32c6_wsl2.cfg" # OpenOCD configuration
-export ESP_LOG_LEVEL="INFO"           # Log level filtering
+# Build project first
+idf.py build
 ```
 
-### Tool Dependencies
-- **Python 3.7+** with packages: `pyserial`, `dataclasses`
-- **ESP-IDF v5.2+** properly configured
-- **OpenOCD** with ESP32-C6 support
-- **RISC-V GDB** (`riscv32-esp-elf-gdb`)
+## 📊 Session Management
 
-## 📊 Integration Examples
+The unified debugger tracks debugging sessions with:
+- Session history and logging
+- Environment check results
+- Configuration management
+- Comprehensive debugging reports
 
-### GitHub Actions CI/CD
-```yaml
-- name: Hardware Validation
-  run: |
-    ./tools/quick_debug.sh build
-    python3 tools/verification_suite.py --test all
-```
-
-### Pre-commit Hooks
+Access session information:
 ```bash
-#!/bin/sh
-python3 tools/verification_suite.py --test build
+# View session history
+cat debug_session.log
+
+# Generate detailed report
+python3 esp32c6_unified_debugger.py --report
 ```
 
-### Automated Testing
-```python
-from tools.debug_helper import VESCDebugHelper
-from tools.verification_suite import VESCVerificationSuite
+## 🎉 Benefits
 
-# Automated test execution
-helper = VESCDebugHelper()
-results = helper.run_comprehensive_test()
+✅ **One-Command Setup**: Automated environment configuration
+✅ **WSL2 Compatible**: Full USB passthrough automation  
+✅ **Profile-Based**: Predefined configurations for common scenarios
+✅ **Memory Analysis**: Advanced heap/stack debugging
+✅ **Session Tracking**: History and logging for debugging sessions
+✅ **VS Code Integration**: Seamless IDE debugging setup
+✅ **Error Recovery**: Automatic issue detection and fixes
 
-suite = VESCVerificationSuite()
-verification = suite.run_comprehensive_verification()
-```
+## 🔗 Integration
 
-## 🎯 Best Practices
-
-### Development Workflow
-1. **Start with Verification**: `./tools/quick_debug.sh check`
-2. **Iterative Development**: `./tools/quick_debug.sh build flash monitor`
-3. **Regular Testing**: `python3 tools/debug_helper.py --test`
-4. **Production Validation**: Complete verification before release
-
-### Debugging Strategy
-1. **Environment Check**: Verify all tools and connections
-2. **Build Analysis**: Ensure clean compilation
-3. **Hardware Testing**: OpenOCD and GDB validation
-4. **Runtime Monitoring**: Real-time log analysis
-5. **Issue Classification**: Use pattern recognition for root cause analysis
-
-### Performance Monitoring
-1. **Baseline Metrics**: Establish normal operation parameters
-2. **Continuous Monitoring**: Real-time system health tracking
-3. **Trend Analysis**: Historical performance comparison
-4. **Alert Thresholds**: Automated issue detection
-
-## 🆘 Troubleshooting
-
-### Common Issues
-- **Device Not Found**: Check USB connection and permissions
-- **ESP-IDF Missing**: Source ESP-IDF environment: `. ~/esp/esp-idf/export.sh`
-- **OpenOCD Fails**: Verify configuration file and device permissions
-- **Build Errors**: Run verification suite for detailed analysis
-
-### Support Resources
-- **Logs Directory**: All tools save detailed logs for analysis
-- **Verbose Output**: Most tools support debug/verbose modes
-- **JSON Reports**: Machine-readable results for automated analysis
-- **Error Categorization**: Intelligent issue classification and suggestions
+These tools integrate with existing ESP-IDF workflows:
+- Compatible with `idf.py` commands
+- Works with ESP-IDF Docker containers
+- Supports multiple devices
+- Non-invasive - can coexist with manual setups
 
 ---
 
-**🎉 Happy Debugging!** These tools are designed to simplify ESP32-C6 VESC Express development with intelligent automation and comprehensive analysis.
+**For detailed documentation, see**: `../ESP32_IDF_DEBUGGING_SIMPLIFIED.md`

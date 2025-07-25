@@ -48,6 +48,7 @@
 #include "datatypes.h"
 #include "commands.h"
 #include "comm_wifi.h"
+// #include "debug_wifi.h"  // DISABLED: WiFi debug components removed
 #include "lispif.h"
 
 #define SSID_SIZE SIZEOF_MEMBER(wifi_ap_record_t, ssid)
@@ -831,6 +832,18 @@ static lbm_value ext_wifi_ftm_measure(lbm_value *args, lbm_uint argn) {
 	return ENC_SYM_NIL;
 }
 
+static lbm_value ext_debug_network_test(lbm_value *args, lbm_uint argn) {
+    (void)args; (void)argn;
+    
+    if (argn != 0) {
+        return ENC_SYM_EERROR;
+    }
+    
+    // WiFi debug components disabled for ESP32-C6 stability
+    // Return NIL to indicate debug features are unavailable
+    return ENC_SYM_NIL;
+}
+
 #define CUSTOM_SOCKET_COUNT 5
 static int custom_sockets[CUSTOM_SOCKET_COUNT];
 static int custom_socket_now = 0;
@@ -1566,6 +1579,7 @@ void lispif_load_wifi_extensions(void) {
 	lbm_add_extension("wifi-max-tx-power", ext_wifi_max_tx_power);
 	lbm_add_extension("wifi-auto-reconnect", ext_wifi_auto_reconnect);
 	lbm_add_extension("wifi-ftm-measure", ext_wifi_ftm_measure);
+	lbm_add_extension("debug-network-test", ext_debug_network_test);
 	lbm_add_extension("tcp-connect", ext_tcp_connect);
 	lbm_add_extension("tcp-close", ext_tcp_close);
 	lbm_add_extension("tcp-status", ext_tcp_status);

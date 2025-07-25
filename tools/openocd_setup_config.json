@@ -1,0 +1,31 @@
+{
+  "default_config_type": "optimized",
+  "auto_detect_device": true,
+  "create_vscode_config": true,
+  "test_connection": true,
+  "custom_speed": null,
+  "session_history": [
+    {
+      "timestamp": "2025-07-23 14:45:12",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    },
+    {
+      "timestamp": "2025-07-23 14:51:41",
+      "tool": "ESP32C6OpenOCDSetup",
+      "action": "device_detected",
+      "details": {
+        "info": [
+          "USB device detected (303a:1001)",
+          "Serial device found: /dev/ttyACM0"
+        ]
+      }
+    }
+  ]
+}

@@ -24,6 +24,9 @@
 #include "esp_adc/adc_cali_scheme.h"
 
 #include "hal/gpio_ll.h"
+#include "hub_motor_enhancements.h"
+#include "wifi_c6_enhancements.h"
+#include "lispbm_hub_motor_scripts.h"
 #include "esp_log.h"
 
 // ESP32-C6 enhancement modules - compatible integration
@@ -92,17 +95,21 @@ void hw_init(void) {
 	// pm_c6_init();
 	ESP_LOGI(TAG, "✓ Power management initialized (basic ESP-IDF PM)");
 
-	// STEP 2: Initialize WiFi 6 Enhancement Module (non-blocking)
+	// STEP 2: Initialize WiFi 6 Enhancement Module (Motor Control Optimized)
 	ESP_LOGI(TAG, "Initializing ESP32-C6 WiFi 6 enhancements...");
-	// TODO: Temporarily disabled for build validation - implement wifi_c6_init_enhancements()
-	// wifi_c6_init_enhancements();
-	ESP_LOGI(TAG, "✓ WiFi 6 enhancements initialized (using ESP-IDF defaults)");
+	wifi_c6_init_enhancements();
+	ESP_LOGI(TAG, "✓ WiFi 6 enhancements initialized (motor control optimized)");
 
 	// STEP 3: Initialize Bluetooth 5.3 Enhancement Module (VESC BLE compatible)
 	ESP_LOGI(TAG, "Initializing ESP32-C6 Bluetooth 5.3 enhancements...");
 	// Note: This enhances the existing BLE stack without replacing core VESC BLE
 	ble_c6_init_enhancements();
 	ESP_LOGI(TAG, "✓ Bluetooth 5.3 enhancements initialized (VESC compatible)");
+
+	// STEP 3.5: Initialize Hub Motor FOC Optimization (Research-Based 2024)
+	ESP_LOGI(TAG, "Initializing hub motor FOC optimization...");
+	hub_motor_foc_init_optimization();
+	ESP_LOGI(TAG, "✓ Hub motor FOC optimization initialized");
 
 	// STEP 4: Initialize Android Compatibility Optimizations
 	ESP_LOGI(TAG, "Initializing Android compatibility optimizations...");
@@ -115,7 +122,12 @@ void hw_init(void) {
 	// ieee802154_init();
 	ESP_LOGI(TAG, "✓ IEEE 802.15.4 support initialized (disabled for build validation)");
 
-	// STEP 6: Initialize VESC Integration Layer (ensures compatibility)
+	// STEP 6: Initialize LispBM Hub Motor Scripts
+	ESP_LOGI(TAG, "Initializing LispBM hub motor control scripts...");
+	lispbm_hub_motor_init_scripts();
+	ESP_LOGI(TAG, "✓ LispBM hub motor scripts initialized");
+
+	// STEP 7: Initialize VESC Integration Layer (ensures compatibility)
 	ESP_LOGI(TAG, "Initializing VESC ESP32-C6 integration layer...");
 	// TODO: vesc_c6_integration_init() - implement if needed
 	ESP_LOGI(TAG, "✓ VESC integration layer initialized");

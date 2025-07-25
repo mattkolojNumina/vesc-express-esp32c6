@@ -684,8 +684,7 @@ void comm_ble_init(void) {
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 #ifdef CONFIG_IDF_TARGET_ESP32C6
 	// ESP32-C6 enhanced configuration leveraging superior hardware
-	bt_cfg.ble_max_act = 20;        // Increased activities (C6 can handle more)
-	bt_cfg.ble_max_conn = 8;        // Support 8 concurrent connections
+	// Note: In ESP-IDF v5.5, these parameters are set via sdkconfig, not runtime
 	bt_cfg.ble_ll_resolv_list_size = 16;  // Enhanced privacy support
 	bt_cfg.ble_hci_evt_hi_buf_count = 50; // High throughput event buffers
 	ESP_LOGI("BLE", "ESP32-C6 enhanced BLE controller initialized (motor control optimized)");
@@ -703,7 +702,7 @@ void comm_ble_init(void) {
 	esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN, ESP_PWR_LVL_P18);
 	esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P18);
 
-	esp_bt_dev_set_device_name((char *)backup.config.ble_name);
+	esp_ble_gap_set_device_name((char *)backup.config.ble_name);
 
 	esp_ble_gatts_register_callback(gatts_event_handler);
 	esp_ble_gap_register_callback(gap_event_handler);

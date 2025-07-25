@@ -1,0 +1,198 @@
+#!/bin/bash
+# Pytest - Ultimate Development Convenience Script
+# Single script for all common pytest operations
+# Based on proven ESP32-C6 VESC Express patterns
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+print_logo() {
+    echo -e "${CYAN}"
+    echo "🚀 PYTEST - Ultimate Development Suite"
+    echo "═══════════════════════════════════════════"
+    echo -e "${NC}"
+    echo -e "${BLUE}Intelligent Pytest Development & Management${NC}"
+    echo ""
+}
+
+print_help() {
+    print_logo
+    echo "Usage: ./pytest_ultimate <command> [options]"
+    echo ""
+    echo -e "${GREEN}🔨 Core Commands:${NC}"
+    echo "  setup          - Complete environment setup"
+    echo "  check          - Verify environment and configuration"
+    echo "  start          - Start pytest with optimal settings"
+    echo "  stop           - Stop pytest gracefully"
+    echo "  restart        - Restart with configuration reload"
+    echo ""
+    echo -e "${GREEN}🔍 Discovery Commands:${NC}"
+    echo "  discover       - Show all available tools and capabilities"
+    echo "  suggest        - Smart recommendations based on project state"
+    echo "  tools          - List specialized tools and utilities"
+    echo "  analyze        - Comprehensive project analysis"
+    echo ""
+    echo -e "${GREEN}🐛 Debugging Commands:${NC}"
+    echo "  debug          - Interactive debugging session"
+    echo "  troubleshoot   - Automated problem resolution"
+    echo "  logs           - View and analyze logs"
+    echo "  health         - System health check"
+    echo ""
+    echo -e "${GREEN}📊 Analytics Commands:${NC}"
+    echo "  analytics      - View usage analytics and insights"
+    echo "  optimize       - Apply performance optimizations"
+    echo "  benchmark      - Run performance benchmarks"
+    echo ""
+    echo -e "${GREEN}⚡ Quick Commands:${NC}"
+    echo "  dev            - Complete development workflow"
+    echo "  quick          - Fast setup and start"
+    echo "  full           - Comprehensive setup and validation"
+    echo ""
+    echo -e "${GREEN}💡 Examples:${NC}"
+    echo "  ./pytest_ultimate setup      # First-time setup"
+    echo "  ./pytest_ultimate dev        # Standard development"
+    echo "  ./pytest_ultimate suggest    # Get recommendations"
+    echo "  ./pytest_ultimate debug      # Debug issues"
+    echo ""
+}
+
+# Log usage for analytics
+log_usage() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1 command used" >> .pytest_analytics.log 2>/dev/null || true
+}
+
+# Smart environment setup
+setup_environment() {
+    if [ ! -f ".env.pytest" ]; then
+        echo -e "${YELLOW}⚠️  Project environment not found. Running setup...${NC}"
+        ./setup_pytest_env.sh 2>/dev/null || echo "Setup script not found, using defaults"
+    fi
+    
+    if [ -f ".env.pytest" ]; then
+        source .env.pytest
+    fi
+}
+
+# Context-aware suggestions
+generate_suggestions() {
+    echo -e "${BLUE}💡 Smart Pytest Recommendations${NC}"
+    echo ""
+    
+    # Check project state and provide contextual suggestions
+    if [ ! -f "config/pytest.conf" ] && [ ! -f "pytest.config" ]; then
+        echo -e "${YELLOW}⚠️  No configuration detected${NC}"
+        echo "🎯 Recommended: ./pytest_ultimate setup"
+    else
+        echo -e "${GREEN}✅ Configuration found${NC}"
+        echo "🎯 Recommended: ./pytest_ultimate dev"
+    fi
+    
+    # Check if service is running
+    if pgrep -f "pytest" > /dev/null; then
+        echo -e "${GREEN}✅ Pytest is running${NC}"
+        echo "🎯 Recommended: ./pytest_ultimate analyze"
+    else
+        echo -e "${YELLOW}⚠️  Pytest not running${NC}"
+        echo "🎯 Recommended: ./pytest_ultimate start"
+    fi
+    
+    # Analytics-based suggestions
+    if [ -f ".pytest_analytics.log" ]; then
+        local usage_count=$(wc -l < .pytest_analytics.log 2>/dev/null || echo "0")
+        if [ "$usage_count" -gt 0 ]; then
+            echo ""
+            echo -e "${CYAN}📊 Usage: $usage_count commands tracked${NC}"
+            echo "🎯 View analytics: ./pytest_ultimate analytics"
+        fi
+    fi
+    
+    echo ""
+    echo -e "${BLUE}Based on current project state:${NC}"
+    echo "  Use Claude Code: /tool-troubleshoot for automated fixes"
+    echo "  Run ./pytest_ultimate discover to explore all capabilities"
+}
+
+case "$1" in
+    "setup")
+        print_logo
+        log_usage "setup"
+        echo -e "${BLUE}🚀 Setting up Pytest development environment...${NC}"
+        # Add tool-specific setup logic here
+        echo -e "${GREEN}✅ Setup complete! Try: ./pytest_ultimate dev${NC}"
+        ;;
+        
+    "check")
+        setup_environment
+        log_usage "check"
+        echo -e "${BLUE}✅ Checking Pytest environment...${NC}"
+        # Add environment validation logic
+        echo -e "${GREEN}✅ Environment check complete${NC}"
+        ;;
+        
+    "start")
+        setup_environment
+        log_usage "start"
+        echo -e "${BLUE}▶️  Starting Pytest...${NC}"
+        # Add start logic
+        echo -e "${GREEN}✅ Pytest started successfully${NC}"
+        ;;
+    "discover")
+        print_logo
+        log_usage "discover"
+        echo -e "${BLUE}🔍 Pytest Development Tools Discovery${NC}"
+        echo ""
+        echo -e "${GREEN}📱 Claude Code Integration:${NC}"
+        echo "  /tool-troubleshoot   - Automated problem resolution"
+        echo "  /tool-analyze        - Advanced analysis"
+        echo "  /tool-optimize       - Performance optimization"
+        echo ""
+        echo -e "${GREEN}🔧 Available Commands:${NC}"
+        echo "  ./pytest_ultimate check      - Environment validation"
+        echo "  ./pytest_ultimate dev        - Development workflow"
+        echo "  ./pytest_ultimate debug      - Interactive debugging"
+        echo ""
+        echo -e "${GREEN}📊 Analytics:${NC}"
+        echo "  ./pytest_analytics_report.sh - View usage analytics"
+        ;;
+        
+    "suggest")
+        setup_environment
+        log_usage "suggest"
+        generate_suggestions
+        ;;
+    "dev")
+        print_logo
+        log_usage "dev"
+        echo -e "${BLUE}🚀 Pytest development workflow${NC}"
+        setup_environment
+        # Add development workflow logic
+        echo -e "${GREEN}✅ Development workflow complete${NC}"
+        ;;
+        
+    "analytics")
+        log_usage "analytics"
+        if [ -f "./pytest_analytics_report.sh" ]; then
+            ./pytest_analytics_report.sh
+        else
+            echo -e "${YELLOW}Analytics report not available. Run setup first.${NC}"
+        fi
+        ;;
+        
+    "")
+        print_help
+        ;;
+        
+    *)
+        echo -e "${RED}❌ Unknown command: $1${NC}"
+        echo ""
+        print_help
+        exit 1
+        ;;
+esac

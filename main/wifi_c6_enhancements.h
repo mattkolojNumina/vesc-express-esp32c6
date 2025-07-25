@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "sdkconfig.h"
 
 #ifdef CONFIG_IDF_TARGET_ESP32C6
 
@@ -67,6 +68,9 @@ bool wifi_c6_configure_twt(const wifi_c6_config_t *config);
 void wifi_c6_enable_power_save_features(void);
 bool wifi_c6_is_wifi6_connected(void);
 void wifi_c6_print_connection_info(void);
+
+// Motor control specific functions
+void wifi_c6_configure_motor_control_features(void);      // Motor control optimization
 
 // Advanced ESP32-C6 WiFi functions (leveraging superior hardware)
 void wifi_c6_configure_advanced_security(void);           // Enhanced security features

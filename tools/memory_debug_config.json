@@ -1,0 +1,7 @@
+{
+  "memory_threshold_warning": 80,
+  "memory_threshold_critical": 95,
+  "analyze_symbols": true,
+  "generate_reports": true,
+  "session_history": []
+}

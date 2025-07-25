@@ -7,9 +7,9 @@ Simplified hardware debugging and verification tool
 import subprocess
 import sys
 import time
+import os
 import serial
 import json
-import os
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
@@ -67,14 +67,37 @@ class VESCDebugHelper:
     def _check_esp_idf(self) -> bool:
         """Check ESP-IDF installation and version"""
         try:
+            # First check if ESP-IDF directory exists
+            esp_idf_path = os.path.expanduser("~/esp/esp-idf")
+            if not os.path.exists(esp_idf_path):
+                self.log("ESP-IDF directory does not exist at ~/esp/esp-idf", "ERROR")
+                return False
+            
+            # Try to get ESP-IDF version using bash properly
+            cmd = f'bash -c "cd {esp_idf_path} && . ./export.sh > /dev/null 2>&1 && idf.py --version"'
             result = subprocess.run(
-                ". $HOME/esp/esp-idf/export.sh && idf.py --version",
-                shell=True, capture_output=True, text=True
+                cmd,
+                shell=True, capture_output=True, text=True, timeout=30
             )
-            if result.returncode == 0:
+            
+            if result.returncode == 0 and result.stdout.strip():
                 version_info = result.stdout.strip()
                 self.log(f"ESP-IDF version: {version_info}")
-                return "v5." in version_info  # Check for v5.x
+                return "v5." in version_info or "ESP-IDF" in version_info
+            else:
+                # Alternative check - look for version file
+                version_file = os.path.join(esp_idf_path, "version.txt")
+                if os.path.exists(version_file):
+                    with open(version_file, 'r') as f:
+                        version = f.read().strip()
+                        self.log(f"ESP-IDF version (from file): {version}")
+                        return "v5." in version
+                
+                self.log(f"ESP-IDF command failed: {result.stderr}", "ERROR")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            self.log("ESP-IDF check timed out", "ERROR")
             return False
         except Exception as e:
             self.log(f"ESP-IDF check failed: {e}", "ERROR")
@@ -354,7 +377,8 @@ class VESCDebugHelper:
                 try:
                     heap_size = int([x for x in line_content.split() if x.isdigit()][-1])
                     analysis["memory_info"]["free_heap"] = heap_size
-                except:
+                except (ValueError, IndexError, TypeError):
+                    # Could not parse heap size from log line
                     pass
         
         # Generate summary

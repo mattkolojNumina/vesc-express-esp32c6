@@ -29,6 +29,8 @@
 #include "comm_usb.h"
 #include "comm_can.h"
 #include "comm_wifi.h"
+// #include "debug_wifi.h"           // DISABLED: WiFi debug components causing memory pressure
+// #include "debug_wifi_delayed.h"   // DISABLED: WiFi debug components causing memory pressure
 #include "commands.h"
 #include "flash_helper.h"
 #include "crc.h"
@@ -58,6 +60,9 @@
 
 #include <string.h>
 #include <sys/time.h>
+#include "esp_log.h"
+
+static const char *TAG = "VESC_MAIN";
 
 // Global variables
 volatile backup_data backup;
@@ -68,8 +73,13 @@ volatile static bool init_done = false;
 // Private functions
 static void terminal_nmea(int argc, const char **argv);
 static void terminal_ublox_reinit(int argc, const char **argv);
+static void terminal_debug_info(int argc, const char **argv);
+static void terminal_debug_level(int argc, const char **argv);
 
 void app_main(void) {
+	ESP_LOGI(TAG, "ESP32-C6 VESC Express starting...");
+	ESP_LOGI(TAG, "Chip model: ESP32-C6, BLE5.3 + WiFi6");
+	
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	tv.tv_sec = 0;
@@ -128,24 +138,31 @@ void app_main(void) {
 
 	mempools_init();
 	bms_init();
+	ESP_LOGI(TAG, "Initializing commands subsystem...");
 	commands_init();
 #ifdef CAN_TX_GPIO_NUM
+	ESP_LOGI(TAG, "Starting CAN communication on GPIO%d/GPIO%d", CAN_TX_GPIO_NUM, CAN_RX_GPIO_NUM);
 	comm_can_start(CAN_TX_GPIO_NUM, CAN_RX_GPIO_NUM);
 #endif
+	ESP_LOGI(TAG, "Initializing USB communication...");
 	comm_usb_init();
 
 	vTaskDelay(1);
 
+	ESP_LOGI(TAG, "BLE mode: %d", backup.config.ble_mode);
 	switch (backup.config.ble_mode) {
 		case BLE_MODE_DISABLED: {
+			ESP_LOGI(TAG, "BLE disabled");
 			break;
 		}
 		case BLE_MODE_OPEN:
 		case BLE_MODE_ENCRYPTED: {
+			ESP_LOGI(TAG, "Initializing standard BLE...");
 			comm_ble_init();
 			break;
 		}
 		case BLE_MODE_SCRIPTING: {
+			ESP_LOGI(TAG, "Initializing custom BLE...");
 			custom_ble_init();
 			break;
 		}
@@ -153,6 +170,20 @@ void app_main(void) {
 
 	if (backup.config.wifi_mode != WIFI_MODE_DISABLED) {
 		comm_wifi_init();
+		
+		// WiFi debugging DISABLED to prevent memory pressure and boot loops on ESP32-C6
+		ESP_LOGI(TAG, "WiFi debugging disabled for ESP32-C6 stability");
+		// Core WiFi functionality for VESC protocols remains enabled
+		
+		/* DISABLED: WiFi debug server initialization causing boot loops
+		ESP_LOGI(TAG, "Starting delayed WiFi debugging initialization...");
+		esp_err_t debug_result = debug_wifi_delayed_init();
+		if (debug_result != ESP_OK) {
+			ESP_LOGW(TAG, "WiFi debugging initialization failed (%s) - continuing without debug", 
+					esp_err_to_name(debug_result));
+			// System continues running without debug features - this is acceptable
+		}
+		*/
 	}
 
 	nmea_init();
@@ -190,7 +221,21 @@ void app_main(void) {
 			0,
 			terminal_ublox_reinit);
 
+	// Memory-efficient debug commands using existing infrastructure
+	terminal_register_command_callback(
+			"debug_info",
+			"Show system debug information",
+			0,
+			terminal_debug_info);
+
+	terminal_register_command_callback(
+			"debug_level",
+			"Set/get debug log level (0-5)",
+			"[level]",
+			terminal_debug_level);
+
 	init_done = true;
+	ESP_LOGI(TAG, "VESC Express initialization complete!");
 
 	// Exit main to free up heap-space
 	vTaskDelete(NULL);
@@ -231,6 +276,68 @@ bool main_init_done(void) {
 void main_wait_until_init_done(void) {
 	while (!init_done) {
 		vTaskDelay(5 / portTICK_PERIOD_MS);
+	}
+}
+
+// Memory-efficient debug terminal commands
+static void terminal_debug_info(int argc, const char **argv) {
+	(void)argc; (void)argv;
+	
+	// System information with zero memory allocation
+	uint32_t uptime_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+	size_t free_heap = esp_get_free_heap_size();
+	size_t min_free_heap = esp_get_minimum_free_heap_size();
+	UBaseType_t task_count = uxTaskGetNumberOfTasks();
+	
+	commands_printf("=== ESP32-C6 VESC Express Debug Info ===\n");
+	commands_printf("Uptime: %lu ms (%.1f minutes)\n", uptime_ms, uptime_ms / 60000.0f);
+	commands_printf("Free Heap: %zu bytes (%.1f KB)\n", free_heap, free_heap / 1024.0f);
+	commands_printf("Min Free Heap: %zu bytes (%.1f KB)\n", min_free_heap, min_free_heap / 1024.0f);
+	commands_printf("Memory Usage: %.1f%% (%.1f KB used)\n", 
+		(512.0f * 1024.0f - free_heap) / (512.0f * 1024.0f) * 100.0f,
+		(512.0f * 1024.0f - free_heap) / 1024.0f);
+	commands_printf("Task Count: %u\n", (unsigned)task_count);
+	
+	// WiFi status
+	if (comm_wifi_is_connected()) {
+		esp_ip4_addr_t ip = comm_wifi_get_ip();
+		commands_printf("WiFi: Connected, IP: " IPSTR "\n", IP2STR(&ip));
+	} else {
+		commands_printf("WiFi: Disconnected\n");
+	}
+	
+	// System health indicators
+	bool memory_ok = free_heap > 20480;  // 20KB threshold
+	bool task_load_ok = task_count < 15; // Conservative task limit
+	commands_printf("System Health: %s\n", (memory_ok && task_load_ok) ? "OK" : "WARNING");
+	
+	if (!memory_ok) {
+		commands_printf("  WARNING: Low memory (< 20KB free)\n");
+	}
+	if (!task_load_ok) {
+		commands_printf("  WARNING: High task load (>= 15 tasks)\n");
+	}
+}
+
+static void terminal_debug_level(int argc, const char **argv) {
+	static uint8_t debug_log_level = 3; // Default INFO level (static storage)
+	
+	if (argc == 2) {
+		// Set debug level
+		int level = strtol(argv[1], NULL, 10);
+		if (level >= 0 && level <= 5) {
+			debug_log_level = (uint8_t)level;
+			const char* level_names[] = {"NONE", "ERROR", "WARN", "INFO", "DEBUG", "VERBOSE"};
+			commands_printf("Debug level set to %d (%s)\n", level, level_names[level]);
+		} else {
+			commands_printf("Invalid level. Use 0-5 (0=NONE, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=VERBOSE)\n");
+		}
+	} else {
+		// Get debug level
+		const char* level_names[] = {"NONE", "ERROR", "WARN", "INFO", "DEBUG", "VERBOSE"};
+		commands_printf("Current debug level: %d (%s)\n", debug_log_level, level_names[debug_log_level]);
+		commands_printf("Usage: debug_level [0-5]\n");
+		commands_printf("Levels: 0=NONE, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=VERBOSE\n");
 	}
 }
 
