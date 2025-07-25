@@ -20,7 +20,7 @@
 #ifndef HW_DEVKIT_C6_H_
 #define HW_DEVKIT_C6_H_
 
-#define HW_NAME						"ESP32-C6-DevKitM-1"
+#define HW_NAME						"Devkit C3"
 
 // BLE
 #define HW_BLE_HAS_UART				1

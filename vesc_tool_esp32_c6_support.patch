@@ -1,0 +1,13 @@
+--- a/mobile/fwhelper.cpp
++++ b/mobile/fwhelper.cpp
+@@ -78,6 +78,10 @@ void FwHelper::setBuildAndConnect(VescInterface *vesc)
+         hws.insert(params.hw, "://res/firmwares_esp/ESP32-C3/Duet");
+     } else if (params.hw == "VL Link") {
+         hws.insert(params.hw, "://res/firmwares_esp/ESP32-C3/VL Link");
++    } else if (params.hw == "ESP32-C6-DevKitM-1") {
++        hws.insert(params.hw, "://res/firmwares_esp/ESP32-C6/DevKitM-1");
++    } else if (params.hw == "ESP32-C6 VESC Express") {
++        hws.insert(params.hw, "://res/firmwares_esp/ESP32-C6/VESC Express");
+     }
+ 
+     return hws;
